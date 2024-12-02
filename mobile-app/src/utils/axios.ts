@@ -3,6 +3,10 @@ import { getToken, getRefreshToken } from '../services/auth';
 import { API_BASE_URL } from '../config';
 import { APIError } from './apiErrors';
 
+// Constants
+const RETRY_DELAY_MS = 2000;
+const MAX_RETRIES = 1;
+
 // Create an axios instance with default config
 export const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
@@ -56,10 +60,11 @@ axiosInstance.interceptors.response.use(
         // If error response is not 401 or request was for refresh token, reject
         if (!error.response || error.response.status !== 401 || originalRequest.url === API_BASE_URL + '/api/token/refresh/') {
             // If it's a 503 error, wait a bit and retry once
-            if (error.response?.status === 503 && !originalRequest._retry) {
+            if (error.response?.status === 503 && (!originalRequest._retry || originalRequest._retryCount < MAX_RETRIES)) {
                 originalRequest._retry = true;
-                // Wait 2 seconds before retrying
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                originalRequest._retryCount = (originalRequest._retryCount || 0) + 1;
+                // Wait before retrying
+                await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
                 return axios(originalRequest);
             }
             return Promise.reject(error);
