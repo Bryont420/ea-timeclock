@@ -1,0 +1,157 @@
+{% extends "admin_dashboard.html" %}
+{% load static %}
+
+{% block body_background %}
+{{ background_image_url }}
+{% endblock %}
+
+{% block title %}Employee Management{% endblock %}
+{% block h1_change %}
+<h1> Employee Management </h1>
+{% endblock %}
+{% block content %}
+<div class="employees-outter">
+    <div class="employees" style="text-align: center;">
+        <h2>Employee Management</h2>
+        <br>
+        <table style="margin: 0 auto; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="padding: 10px; border: 1px solid black;">First Name</th>
+                    <th style="padding: 10px; border: 1px solid black;">Last Name</th>
+                    <th style="padding: 10px; border: 1px solid black;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for employee in employees %}
+                <tr>
+                    <td style="padding: 10px; border: 1px solid black;">{{ employee.first_name }}</td>
+                    <td style="padding: 10px; border: 1px solid black;">{{ employee.last_name }}</td>
+                    <td style="padding: 10px; border: 1px solid black;">
+                        <button type="button" class="btn btn-primary edit-employee-button" data-id="{{ employee.id }}">Edit</button>
+                        <button type="button" class="btn btn-danger remove-employee-button" data-id="{{ employee.id }}">Remove</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <br>
+        <button type="button" class="btn btn-success" id="add-employee-button">Add Employee</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block modal %}
+<!-- Add Employee Modal -->
+<div class="modal fade" id="addEmployeeModal" tabindex="-1" role="dialog" aria-labelledby="addEmployeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="close_button">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-header">
+                <h5 class="modal-title" id="addEmployeeModalLabel">Add Employee</h5>
+            </div>
+            <div class="modal-body">
+                <form id="addEmployeeForm" method="post" action="{% url 'add_employee' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="first_name">First Name:</label>
+                        <input type="text" name="first_name" id="first_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="last_name">Last Name:</label>
+                        <input type="text" name="last_name" id="last_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="employee_id">Employee ID:</label>
+                        <input type="number" name="employee_id" id="employee_id" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="department">Department:</label>
+                        <select class="form-control" id="department" name="department">
+                            {% for value, label in department_choices %}
+                            <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+					<div class="form-group">
+						<label for="hire_date">Hire Date:</label>
+						<input type="date" name="hire_date" id="hire_date">
+					</div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" id="saveAddEmployee">Add Employee</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Employee Modal -->
+<div class="modal fade" id="editEmployeeModal" tabindex="-1" role="dialog" aria-labelledby="editEmployeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="close_button">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-header">
+                <h5 class="modal-title" id="editEmployeeModalLabel">Edit Employee</h5>
+            </div>
+            <div class="modal-body">
+                <form id="editEmployeeForm" method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="edit_first_name">First Name:</label>
+                        <input type="text" name="first_name" id="edit_first_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_last_name">Last Name:</label>
+                        <input type="text" name="last_name" id="edit_last_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_employee_id">Employee ID:</label>
+                        <input type="number" name="employee_id" id="edit_employee_id" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_department">Department:</label>
+                        <select class="form-control" id="edit_department" name="department">
+                            {% for value, label in department_choices %}
+                            <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_hire_date">Hire Date:</label>
+                        <input type="date" name="hire_date" id="edit_hire_date">
+                    </div>
+					<button type="button" class="btn btn-warning reset-password-button" data-id="{{ employee.id }}">Reset Password</button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" id="saveEditEmployee">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="loadingSpinner" style="display:none;">
+	<div class="spinner"></div>
+	<div class="loading-text">Loading...</div>
+</div>
+{% endblock %}
+
+{% block footer_scripts %}
+<script>
+    const addEmployeeUrl = "{% url 'add_employee' %}";
+    const editEmployeeUrl = "{% url 'edit_employee' 0 %}".slice(0, -2); // URL pattern without the employee ID
+    const removeEmployeeUrl = "{% url 'remove_employee' 0 %}".slice(0, -2); // URL pattern without the employee ID
+</script>
+<script src="{% static 'timeclock/javascript/apply-admin-background.js' %}"></script>
+<script src="{% static 'timeclock/javascript/add-remove-employees.js' %}"></script>
+{% endblock %}

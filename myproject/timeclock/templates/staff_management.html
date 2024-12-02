@@ -1,0 +1,215 @@
+{% extends "admin_dashboard.html" %}
+
+{% load static %}
+
+{% block body_background %}
+{{ background_image_url }}
+{% endblock %}
+
+
+{% block title %}Staff Management{% endblock %}
+
+{% block h1_change %} <h1>Staff Management</h1> {% endblock %}
+
+{% block content %}
+<div class="staff-members-outter">
+
+    <div class="staff-members" style="text-align: center;">
+        <h2>Staff Members</h2>
+        <br>
+        <table style="margin: 0 auto; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="padding: 10px; border: 1px solid black;">First Name</th>
+                    <th style="padding: 10px; border: 1px solid black;">Last Name</th>
+                    <th style="padding: 10px; border: 1px solid black;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for staff in staff_members %}
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid black;">{{ staff.first_name }}</td>
+                        <td style="padding: 10px; border: 1px solid black;">{{ staff.last_name }}</td>
+                        <td style="padding: 10px; border: 1px solid black;">
+                            {% if staff.id == request.user.id %}
+                                <button class="btn btn-info edit-staff-button" data-id="{{ staff.id }}">Edit</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3" style="padding: 10px; border: 1px solid black;">No staff members found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <br>
+        <button id="toggle-add-staff-form-button" class="btn btn-success">Add Admin</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block modal %}
+<!-- Add Staff Modal -->
+<div class="modal fade" id="addStaffModal" tabindex="-1" role="dialog" aria-labelledby="addStaffModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="close_button">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-header">
+                <h5 class="modal-title" id="addStaffModalLabel">Add Staff Member</h5>
+            </div>
+            <div class="modal-body">
+                <form id="addStaffForm" method="post" action="{% url 'add_staff' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" name="username" id="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="first_name">First Name:</label>
+                        <input type="text" name="first_name" id="first_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="last_name">Last Name:</label>
+                        <input type="text" name="last_name" id="last_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" name="email" id="email" required>
+                    </div>
+					<div class="form-group">
+						<label for="password">Password:</label>
+						<input type="password" name="password" id="password" required>
+						<!-- Password Requirements -->
+						<ul id="password-requirements">
+							<li id="min-length" class="invalid">At least 8 characters</li>
+							<li id="has-number" class="invalid">Contains a number</li>
+							<li id="has-uppercase" class="invalid">Contains an uppercase letter</li>
+							<li id="has-lowercase" class="invalid">Contains a lowercase letter</li>
+							<li id="has-special" class="invalid">Contains a special character</li>
+						</ul>
+					</div>
+                    <button type="button" class="btn btn-success" id="submitAddStaffForm">Add Staff</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Staff Modal -->
+<div class="modal fade" id="editStaffModal" tabindex="-1" role="dialog" aria-labelledby="editStaffModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="close_button">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position: absolute; right: 10px; top: 10px;">
+                    <span aria-hidden="true" style="font-size: 2rem;">&times;</span>
+                </button>
+            </div>
+            <div class="modal-header">
+                <h5 class="modal-title" id="editStaffModalLabel">Edit Staff Member</h5>
+            </div>
+            <div class="modal-body">
+                <form id="editStaffForm" method="post" action="{% url 'edit_staff' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="edit_first_name">First Name:</label>
+                        <input type="text" name="first_name" id="edit_first_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_last_name">Last Name:</label>
+                        <input type="text" name="last_name" id="edit_last_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_email">Email:</label>
+                        <input type="email" name="email" id="edit_email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_password">Password:</label>
+                        <input type="password" name="password" id="edit_password">
+                        <small class="form-text text-muted">Leave blank if you do not wish to change the password.</small>
+                        <!-- Password Requirements -->
+                        <ul id="password-requirements-edit">
+                            <li id="edit-min-length" class="invalid">At least 8 characters</li>
+                            <li id="edit-has-number" class="invalid">Contains a number</li>
+                            <li id="edit-has-uppercase" class="invalid">Contains an uppercase letter</li>
+                            <li id="edit-has-lowercase" class="invalid">Contains a lowercase letter</li>
+                            <li id="edit-has-special" class="invalid">Contains a special character</li>
+                        </ul>
+                    </div>
+                    <!-- Button to open Background Modal -->
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary" id="open-background-modal">Change Background</button>
+                    </div>
+                    <!-- Hidden input to store selected background image -->
+                    <input type="hidden" name="background_image" id="selected_background_image">
+                    <button type="button" class="btn btn-success" id="submitEditStaffForm">Save changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Background Image Selection Modal -->
+<div class="modal fade" id="backgroundModal" tabindex="-1" role="dialog" aria-labelledby="backgroundModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="close_button">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position: absolute; right: 10px; top: 10px;">
+                    <span aria-hidden="true" style="font-size: 2rem;">&times;</span>
+                </button>
+            </div>
+            <div class="modal-header">
+                <h5 class="modal-title" id="backgroundModalLabel">Select Background Image</h5>
+            </div>
+            <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
+                <div id="background-options">
+                    {% for image in available_images %}
+                    <div class="thumbnail-container" style="display: inline-block; margin: 10px; text-align: center;">
+                        <img src="{% static 'timeclock/images/admin_backgrounds/' %}{{ image }}" alt="{{ image }}" class="background-thumbnail" data-image="{{ image }}" data-fullsize-src="{% static 'timeclock/images/admin_backgrounds/' %}{{ image }}">
+                        <br>
+                        <label>
+                            <input type="radio" name="background_image_option" value="{{ image }}">
+                            Select
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="save-background">Select Background</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Preview Modal -->
+<div class="modal fade" id="imagePreviewModal" tabindex="-1" role="dialog" aria-labelledby="imagePreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="close_button">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position: absolute; right: 10px; top: 10px;">
+                    <span aria-hidden="true" style="font-size: 2rem;">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <img id="image-preview" src="" alt="Background Preview" class="img-fluid mx-auto d-block">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="loadingSpinner" style="display:none;">
+    <div class="spinner"></div>
+    <div class="loading-text">Loading...</div>
+</div>
+{% endblock %}
+
+{% block footer_scripts %}
+<script src="{% static 'timeclock/javascript/staff-management.js' %}"></script>
+<script src="{% static 'timeclock/javascript/apply-admin-background.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block body_background %}
+    {% if employee.background_image %}
+        {% static 'timeclock/images/'|add:employee.background_image %}
+    {% endif %}
+{% endblock %}
+
+{% block title %}EA Promos Time Clock {% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'timeclock/css/timeclock-screen.css' %}">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+    var checkStatusUrl = "{% url 'check_status' %}";
+    var clockActionUrl = "{% url 'clock_action' %}";
+    var csrfToken = "{{ csrf_token }}";
+</script>
+<script src="{% static 'timeclock/javascript/timeclock-screen.js' %}"></script>
+{% endblock %}
+
+{% block header %}
+<div class="time-clock">
+	{% block h1_change %} <h1>EA Promos Time Clock</h1> {% endblock %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <p id="full_name"></p>
+    <p id="message"></p>
+	<div id="time-entries-container" style="display: none;">
+        <h3>Today's Time Entries</h3>
+        <ul id="time-entries-list">
+            <!-- Time entries will be dynamically inserted here -->
+        </ul>
+    </div>
+    <form id="employee_form" method="post">
+        {% csrf_token %}
+        <input type="text" id="employee_id" name="employee_id" placeholder="Enter ID">
+        <button type="button" id="clock_button">Clock In / Out</button>
+    </form>
+
+</div>
+{% endblock %}
+
+{% block modal %}
+<div class="modal fade" id="addNoteModal" tabindex="-1" role="dialog" aria-labelledby="addNoteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="close_button">
+                <button type="button" class="close" id="closeModalButton" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-header">
+                <h5 class="modal-title" id="addNoteModalLabel">Add Note to Time Entry</h5>
+            </div>
+            <div class="modal-body">
+                <form id="addNoteForm" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" id="note_entry_id" name="entry_id">
+                    <div class="form-group">
+                        <label for="note_text">Note:</label>
+                        <textarea class="form-control" id="note_text" name="note" rows="4" required></textarea>
+                    </div>
+                    <button type="button" class="btn btn-success" id="submitNoteButton">Save Note</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer_scripts %}
+<!-- Load jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+{% endblock %}

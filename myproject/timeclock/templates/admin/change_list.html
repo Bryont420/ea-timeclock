@@ -1,0 +1,24 @@
+{% extends "admin/change_list.html" %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+<ul>
+{% for day, entries in time_entries_by_day.items %}
+    <li>
+        <strong>{{ day }}</strong>
+        <ul>
+        {% for employee, punches in entries.items %}
+            <li>
+                <strong>{{ employee }}</strong>
+                <ul>
+                {% for punch in punches %}
+                    <li>{{ punch.formatted_clock_in_time }} - {{ punch.formatted_clock_out_time }}</li>
+                {% endfor %}
+                </ul>
+            </li>
+        {% endfor %}
+        </ul>
+    </li>
+{% endfor %}
+</ul>
+{% endblock %}

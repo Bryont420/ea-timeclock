@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}Time Entries{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'timeclock/css/admin-dashboard.css' %}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+{% endblock %}
+{% block header %}
+{% if user.is_authenticated %}
+	<div class="logout-button">
+	{% block h1_change %} <h1>Time Entries</h1> {% endblock %}
+		<form method="post" action="{% url 'logout' %}">
+			{% csrf_token %}
+			<button type="submit" class="button">Logout</button>
+		</form>
+	</div>
+{% else %}
+<h1>Admin Dashboard</h1>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+<div class="messages-outter">
+	<div class="messages">
+		{% for message in messages %}
+			<div class="alert {% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</div>
+		{% endfor %}
+		</div>
+    </div>
+{% endif %}
+<div class="time-entries">
+	<h2>Select Date Range Below</h2>
+	<br>
+	<div class="date-filter-container">
+		<form id="date-filter-form" method="get" class="date-filter-form">
+			<label for="employee_name">Employee:</label>
+				<select name="employee_name" id="employee_name">
+					<option value=""></option>
+						{% for employee in employees %}
+							<option value="{{ employee.id }}">{{ employee.first_name }} {{ employee.last_name }}</option>
+						{% endfor %}
+				</select>
+			<label for="start_date">Start Date:</label>
+			<input type="date" id="start_date" name="start_date" value="{{ start_date|date:'Y-m-d' }}">
+			
+			<label for="end_date">End Date:</label>
+			<input type="date" id="end_date" name="end_date" value="{{ end_date|date:'Y-m-d' }}">
+			<button type="submit" id="filter-submit">Filter</button>
+		</form>
+		<!-- Button to Trigger the Modal -->
+		<button type="button" class="btn btn-primary" id="toggle-add-entry" data-toggle="modal" data-target="#addTimeEntryModal">
+		Add Entry
+		</button>
+	</div>
+	<table>
+		<thead>
+			<tr>
+				<th>Employee</th>
+				<th>Day</th>
+				<th>Time In</th>
+				<th>Time Out</th>
+				<th>Hours Worked</th>
+				<th>Notes</th>
+				<th class="edit-text">Edit</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for entry in time_entries %}
+				<tr>
+					<td>{{ entry.employee.first_name }} {{ entry.employee.last_name }}</td>
+					<td class="in-date">{{ entry.clock_in_time_formatted_date }}</td>
+					<td>{{ entry.clock_in_time_formatted }}</td>
+					<td class="{% if entry.clock_out_time is None %}clocked-in{% else %}clocked-out{% endif %} out-time">
+						{% if entry.clock_out_time %}
+							{{ entry.clock_out_time_formatted }}
+						{% else %}
+							Clocked In
+						{% endif %}
+					</td>
+					<td>{{ entry.hours_worked_admin_view }}</td>
+					<td class="notes">{{ entry.notes|default:""|linebreaksbr }}</td>
+					<td class="edit-remove">
+						<button type="button" class="button edit-time-entry" id="button-edit" data-id="{{ entry.id }}">Edit</button> /
+						<button type="button" class="button-remove" id="button-remove" data-id="{{ entry.id }}">Remove</button>
+
+					</td>
+					</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	<div style="text-align: center; margin-top: 20px;">
+		<button id="print-report" onclick="handleReportButtonClick()">Print Report</button>
+	</div>
+</div>
+{% endblock %}
+
+{% block footer_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+	var isPyQtClient = {{ is_pyqt_client|yesno:"true,false" }};
+	var pdfLink = "{% url 'generate_pdf' %}" 
+	// Auto-dismiss messages (alert) after 5 seconds and hide the outer div after 7 seconds
+	setTimeout(function() {
+		var messageDivs = document.querySelectorAll('.alert');
+		messageDivs.forEach(function(messageDiv) {
+			messageDiv.style.display = 'none';
+		});
+	}, 5000);  // 5000 milliseconds = 5 seconds
+	
+	setTimeout(function() {
+		var outterDiv = document.querySelector('.messages-outter');
+		if (outterDiv) {
+			outterDiv.style.display = 'none';
+		}
+	}, 5500);  // 5500 milliseconds = 5.5 seconds
+</script>
+
+<script src="{% static 'timeclock/javascript/admin-dashboard.js' %}"></script>
+
+<script src="{% static 'timeclock/javascript/time-entry-modal.js' %}"></script>
+
+{% if is_pyqt_client %}
+	<script src="{% static 'timeclock/javascript/qwebchannel.js' %}"></script>
+	<script>
+		flatpickr("input[type=date]", {
+			enableTime: false,
+			dateFormat: "Y-m-d",
+			altInput: true,             // Use an alternate input for display
+			altFormat: "m/d/Y"
+		});
+		flatpickr("input[type=datetime-local]", {
+			enableTime: true,
+			dateFormat: "Y-m-d\\TH:i",   // Format used for submission (24-hour format)
+			time_24hr: false,            // Display time in 12-hour format (AM/PM)
+			altInput: true,             // Use an alternate input for display
+			altFormat: "m/d/Y h:i K"    // Display format (e.g., "09/24/2024 5:30 PM")
+		});
+		document.addEventListener("DOMContentLoaded", function() {
+			// Check if running inside a PySide6 application with QWebChannel support
+			if (window.qt && window.qt.webChannelTransport) {
+				if (typeof QWebChannel !== 'undefined') {
+					var channel = new QWebChannel(qt.webChannelTransport, function (channel) {
+						window.myApp = channel.objects.myApp;
+					});
+				} else {
+					console.error('QWebChannel is not defined');
+				}
+			}
+		});
+	</script>
+{% endif %}
+{% endblock %}

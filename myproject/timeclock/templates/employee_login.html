@@ -1,0 +1,40 @@
+{% extends "timeclock_screen.html" %}
+
+{% block title %}Employee Login{% endblock %}
+
+{% load static %}
+
+{% block h1_change %} <h1>Employee Login</h1> {% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'timeclock/css/admin-dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'timeclock/css/employee-info.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="login-form-outter">
+	<div class="login-container">
+		<h2>Employee Login</h2>
+		<form method="post">
+			{% csrf_token %}
+			{% if error %}
+				<div class="error-message">{{ error }}</div>
+			{% endif %}
+		    <input type="hidden" name="next" value="{{ next }}">
+			<div class="form-group">
+				<input type="text" name="username" placeholder="Username" required>
+			</div>
+			<div class="form-group">
+				<input type="password" name="password" placeholder="Password" required>
+			</div>
+			<button type="submit" class="login-button">Login</button>
+		</form>
+	</div>
+</div>
+{% endblock %}
+
+{% block modal %}
+{% endblock %}
+
+{% block footer_scripts %}
+{% endblock %}

@@ -1,0 +1,1294 @@
+/* General Styles */
+
+
+.background-thumbnail {
+
+    width: 150px;
+
+    height: 150px;
+
+    object-fit: cover;
+
+    border: 2px solid transparent;
+
+    cursor: pointer;
+
+}
+
+
+
+.thumbnail-container.selected .background-thumbnail {
+
+    border: 2px solid blue;
+
+}
+
+
+
+#image-preview {
+
+    max-width: 700px;
+
+    max-height: 700px;
+
+    width: auto;
+
+    height: auto;
+
+}
+
+
+
+#employee-background {
+
+    background-image: url('../images/employee_backgrounds/employee-info-background.jpg'); /* Replace with your image path */
+
+    background-size: cover;          /* Make the image cover the screen without stretching */
+
+    background-position: center;     /* Center the image */
+
+    background-attachment: fixed;    /* Keep the image fixed during scroll */
+
+    background-repeat: no-repeat;    /* Prevent the image from repeating */
+
+    margin: 0;
+
+    padding: 0;}
+
+
+
+.toggle-add-entry {
+
+    margin-right: 15px;
+
+}
+
+
+
+.btn-dark {
+
+  transition: all 0.3s ease-in-out; /* Smooth transition */	
+
+}
+
+
+
+.btn-dark:hover {
+
+  font-size: 1.25rem; /* Increase font size */
+
+  padding: 0.75rem 0.75rem; /* Adjust padding for the larger size */
+
+}
+
+
+
+/* General Section Styling */
+
+.employees-outter,
+
+.edit-employee-outter,
+
+.edit-time-entries,
+
+.employees,
+
+.edit-employees,
+
+.staff-members-outter,
+
+.staff-members,
+
+.time-entries,
+
+.edit-staff-outter,
+
+.messages-outter,
+
+.day-view-container,
+
+.who-is-in-outter,
+
+.who-is-in,
+
+.change-password-form-outter,
+
+.change-password-form,
+
+#resetVacationHoursForm,
+
+#resetSickHoursForm {
+
+    background-color: rgba(255, 255, 255, 0.4);
+
+    width: 100%;
+
+    padding: 20px;
+
+    border-radius: 10px;
+
+    margin: 30px auto;
+
+    text-align: center;
+
+}
+
+
+
+#resetVacationHoursForm,
+
+#resetSickHoursForm {
+
+	text-align: center;
+
+}
+
+
+
+.day-view-container {
+
+    width: 90%;
+
+}
+
+
+
+.change-password-form{
+
+	width: 50vw;
+
+}
+
+
+
+.employees-outter,
+
+.edit-employee-outter,
+
+.edit-staff-outter,
+
+.staff-members-outter,
+
+.who-is-in-outter,
+
+.change-password-form-outter {
+
+    width: 75%;
+
+}
+
+
+
+.who-is-in-outter {
+
+    background-color: rgba(255, 255, 255, 0.4);
+
+}
+
+
+
+.who-is-in {
+
+    max-width: 45vw;
+
+}
+
+
+
+.employees,
+
+.edit-employees,
+
+.staff-members {
+
+    background-color: rgba(255, 255, 255, 0.3);
+
+    max-width: 45vw;
+
+}
+
+
+
+.messages-outter,
+
+.time-entries {
+
+    max-width: 95vw;
+
+}
+
+
+
+.edit-time-entries {
+
+    max-width: 75vw;
+
+}
+
+
+
+h2,
+
+.messages {
+
+    font-size: 1.8rem;
+
+    margin: auto;
+
+    max-width: 95vw;
+
+    font-weight: bold;
+
+    color: #333;
+
+}
+
+
+
+/* List Styling */
+
+.employees ul,
+
+.who-is-in ul {
+
+    list-style: none;
+
+    padding: 0;
+
+}
+
+
+
+.employees ul li,
+
+.who-is-in ul li {
+
+    padding: 10px;
+
+    font-size: 1.1rem;
+
+}
+
+
+
+/* Table Styling */
+
+.time-entries table,
+
+.week-table table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+}
+
+
+
+.time-entries th,
+
+.time-entries td,
+
+.week-table th,
+
+.week-table td {
+
+    border: 1px solid #ddd;
+
+    padding: 8px;
+
+    text-align: left;
+
+    max-width: 200px;
+
+    word-wrap: break-word;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+}
+
+
+
+.time-entries td,
+
+.week-table td {
+
+    font-size: 1.2rem;
+
+}
+
+
+
+.time-entries th,
+
+.week-table th {
+
+    background-color: #333;
+
+    color: #fff;
+
+    font-size: 1.3rem;
+
+}
+
+
+
+.time-entries tr:nth-child(even),
+
+.week-table tr:nth-child(even) {
+
+    background-color: #d1d1d16e;
+
+}
+
+
+
+.time-entries tr:nth-child(odd),
+
+.week-table tr:nth-child(odd) {
+
+    background-color: #ffffff8c;
+
+}
+
+
+
+.time-entries tr:hover {
+
+    background-color: #6c6c6c;
+
+}
+
+
+
+/* Header and Messages Styling */
+
+header h1 {
+
+    margin: auto;
+
+    font-size: 2.5rem;
+
+    color: #333;
+
+    text-align: center;
+
+    padding: 10px 0;
+
+}
+
+
+
+/* Login Form Styling */
+
+.login-form-outter,
+
+.login-container {
+
+    background: rgba(255, 255, 255, 0.6);
+
+    padding: 20px;
+
+    border-radius: 10px;
+
+    text-align: center;
+
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
+    margin: 30px auto;
+
+}
+
+
+
+.login-form-outter {
+
+    max-width: 666px;
+
+}
+
+
+
+.login-container {
+
+    background: rgba(0, 0, 0, 0.3);
+
+    max-width: 420px;
+
+}
+
+
+
+.login-container h2 {
+
+    margin-bottom: 20px;
+
+    font-size: 24px;
+
+    font-weight: bold;
+
+    color: #333;
+
+}
+
+
+
+.login-container .form-group {
+
+    margin-bottom: 15px;
+
+}
+
+
+
+.login-container .form-group input {
+
+    font-size: 20px;
+
+    padding: 10px;
+
+    width: 90%;
+
+    border: 1px solid #ddd;
+
+    border-radius: 5px;
+
+    box-sizing: border-box;
+
+    margin-bottom: 10px;
+
+    text-align: center;
+
+}
+
+
+
+.login-container .form-group input:focus {
+
+    border-color: #007bff;
+
+    outline: none;
+
+}
+
+
+
+.login-container .error-message {
+
+    color: white;
+
+    font-size: 14px;
+
+    text-align: center;
+
+    margin-bottom: 10px;
+
+}
+
+
+
+.login-container button {
+
+    font-size: 20px;
+
+    padding: 10px 20px;
+
+    background-color: #007bff;
+
+    border: none;
+
+    border-radius: 5px;
+
+    color: #fff;
+
+    cursor: pointer;
+
+    width: 100%;
+
+}
+
+
+
+.login-container button:hover {
+
+    background-color: #0056b3;
+
+}
+
+
+
+/* General Form Styling */
+
+.add-staff-form,
+
+#add-employee-form,
+
+.add-time-entry-form,
+
+.edit-staff,
+
+.edit-time-entry-form,
+
+#add-entry-form,
+
+#regularTimeForm,
+
+#vacationForm,
+
+#editTimeEntryForm,
+
+#holidayForm,
+
+#addEmployeeForm,
+
+#editEmployeeForm,
+
+#sickTimeForm {
+
+    background: rgba(255, 255, 255, 0.3);
+
+    padding: 20px;
+
+    border-radius: 10px;
+
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
+    margin: 30px auto;
+
+    max-width: 45vw;
+
+    text-align: center;
+
+}
+
+
+
+.edit-staff,
+
+.edit-time-entry-form {
+
+    background: rgba(0, 0, 0, 0.3);
+
+	max-width: 55vw;
+
+}
+
+
+
+#add-entry-form,
+
+#editTimeEntryForm {
+
+	max-width: 55vw;
+
+}
+
+
+
+.modal-content {
+
+    background: rgba(255, 255, 255, 0.6
+
+	) !important;
+
+    border: none !important;
+
+}
+
+
+
+.modal-footer {
+
+    border-top: none !important;
+
+}
+
+
+
+.modal-body {
+
+    width: 90%;
+
+    margin: 15px auto;
+
+    background-color: rgba(255, 255, 255, 0.3) !important;
+
+	border-radius: 10px;
+
+}
+
+
+
+#step1,
+
+.modal-header {
+
+    text-align: center;
+
+    border-bottom: none !important;
+
+}
+
+
+
+.modal-header {
+
+    display: block !important;
+
+}
+
+
+
+#add-entry-form {
+
+    display: none;
+
+    padding: 20px;
+
+    border-radius: 5px;
+
+    margin-top: 20px;
+
+    max-width: 70vw;
+
+}
+
+
+
+#add-staff-form-container {
+
+    max-width: 55vw;
+
+}
+
+
+
+.form-group {
+
+    margin-bottom: 15px;
+
+}
+
+
+
+.form-group label {
+
+    display: block;
+
+    margin-bottom: 8px;
+
+    font-size: 18px;
+
+    font-weight: bold;
+
+    color: #333;
+
+}
+
+
+
+.form-group input,
+
+.add-time-entry-form select[name="employee_id"],
+
+#regularTimeForm select[name="employee_id"],
+
+#vacationForm select[name="employee_id_vacation"],
+
+#holidayForm select[name="employee_id_holiday"],
+
+#holidayForm select[name="holiday_type"],
+
+#sickTimeForm  select[name="employee_id_sick"] {
+
+    font-size: 16px;
+
+    padding: 10px;
+
+    width: 60%;
+
+    border: 1px solid #ddd;
+
+    border-radius: 5px;
+
+    box-sizing: border-box;
+
+    margin-bottom: 10px;
+
+    text-align: center;
+
+}
+
+
+
+
+
+#regularTimeForm select[name="employee_id"],
+
+#vacationForm select[name="employee_id_vacation"],
+
+#holidayForm select[name="employee_id_holiday"],
+
+#holidayForm select[name="holiday_type"],
+
+#sickTimeForm  select[name="employee_id_sick"] {
+
+    appearance: none;
+
+    -webkit-appearance: none;
+
+    -moz-appearance: none;
+
+    background: white url('') no-repeat right 10px center;	
+
+}
+
+
+
+#editStaffForm input,
+
+#addStaffForm input {
+
+    text-align: left;
+
+}
+
+
+
+.form-group input:focus,
+
+#regularTimeForm select[name="employee_id"]:focus,
+
+#vacationForm select[name="employee_id_vacation"]:focus,
+
+#holidayForm select[name="employee_id_holiday"]:focus,
+
+#holidayForm select[name="holiday_type"]:focus,
+
+#sickTimeForm  select[name="employee_id_sick"]:focus {
+
+    border-color: #007bff;
+
+    outline: none;
+
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+
+}
+
+
+
+/* Button Styling */
+
+#button-edit,
+
+#button-remove {
+
+    padding: 5px 10px;
+
+}
+
+
+
+#filter-submit {
+
+    margin: 15px;
+
+}
+
+
+
+.close_button {
+
+    margin: 5px 10px auto auto;
+
+}
+
+
+
+/* Date Filter Styling */
+
+.date-filter {
+
+    margin-top: 20px;
+
+}
+
+
+
+.date-filter-container {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 20px;
+
+}
+
+
+
+#date-filter-form {
+
+    margin-left: 15px;
+
+    display: flex;
+
+    align-items: center;
+
+}
+
+
+
+#date-filter-form label {
+
+    margin-left: 15px;
+
+}
+
+
+
+#date-filter-form input {
+
+    padding: 5px;
+
+    border: 1px solid #ccc;
+
+    border-radius: 4px;
+
+}
+
+
+
+#date-filter-form select {
+
+    padding: 5px;
+
+    border: 1px solid #ccc;
+
+    border-radius: 4px;
+
+    margin-right: 15px;
+
+}
+
+
+
+/* Additional Styles */
+
+.edit-remove,
+
+.edit-text,
+
+.full-day {
+
+    text-align: center !important;
+
+}
+
+
+
+.clocked-in {
+
+    color: red;
+
+}
+
+
+
+.additional-time {
+
+    margin-left: 20px;
+
+}
+
+
+
+.notes {
+
+    color: black;
+
+}
+
+
+
+.clocked-out {
+
+    color: inherit;
+
+}
+
+
+
+h3 {
+
+    color: #333;
+
+    font-family: Roboto;
+
+    font-size: 1.2em;
+
+    font-weight: bold;
+
+}
+
+
+
+h5 {
+
+    color: #333;
+
+    font-family: Roboto;
+
+    font-size: 1.75rem !important;
+
+    font-weight: bold !important;
+
+}
+
+
+
+.notes-textarea {
+
+    width: 60%;
+
+    padding: 10px;
+
+    border: 1px solid #ddd;
+
+    border-radius: 5px;
+
+    font-size: 16px;
+
+    box-sizing: border-box;
+
+}
+
+
+
+/* Loading Spinner */
+
+#loadingSpinner {
+
+    position: fixed;
+
+    top: 0;
+
+    left: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    background-color: rgba(0, 0, 0, 0.5); /* Dark semi-transparent background */
+
+    z-index: 1050; /* Make sure it's above the modal backdrop */
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    flex-direction: column;
+
+    font-size: 18px;
+
+    color: #fff;
+
+}
+
+
+
+.spinner {
+
+    border: 4px solid rgba(255, 255, 255, 0.3);
+
+    border-radius: 50%;
+
+    border-top: 4px solid #fff;
+
+    width: 40px;
+
+    height: 40px;
+
+    animation: spin 1s linear infinite;
+
+    margin-bottom: 10px; /* Space between spinner and text */
+
+}
+
+
+
+@keyframes spin {
+
+    0% { transform: rotate(0deg); }
+
+    100% { transform: rotate(360deg); }
+
+}
+
+
+
+.loading-text {
+
+    font-size: 24px;
+
+    font-weight: bold;
+
+}
+
+
+
+/* Password Requirements */
+
+#password-requirements,
+
+#password-requirements-edit {
+
+    list-style-type: none;
+
+    padding-left: 0;
+
+    margin-top: 10px;
+
+}
+
+
+
+#password-requirements li,
+
+#password-requirements-edit li {
+
+    color: #ff0000; /* Red for unmet requirements */
+
+}
+
+
+
+#password-requirements li.valid,
+
+#password-requirements-edit li.valid {
+
+    color: #008000; /* Green for met requirements */
+
+}
+
+
+
+#password-requirements li.invalid,
+
+#password-requirements-edit li.invalid {
+
+    color: #ff0000; /* Red for unmet requirements */
+
+}
+
+
+
+#notesTable {
+
+    width: 100%; /* Full-width table */
+
+}
+
+
+
+#notesTable th, #notesTable td {
+
+    padding: 8px; /* Consistent padding */
+
+    vertical-align: middle; /* Vertically center content */
+
+    text-align: left; /* Left-align text */
+
+    overflow: hidden; /* Prevent overflow */
+
+    white-space: nowrap; /* Prevent text wrapping */
+
+    text-overflow: ellipsis; /* Add ellipsis for overflowed content */
+
+}
+
+
+
+#notesTable textarea {
+
+    width: 100%; /* Ensure textarea fills the cell */
+
+    height: auto; /* Adjust height automatically */
+
+    box-sizing: border-box; /* Include padding and border in width/height */
+
+    margin: 0; /* Remove default margin */
+
+    vertical-align: top; /* Align textarea to the top */
+
+}
+
+
+
+#notesTable .delete a {
+
+    display: inline-block; /* Ensure delete links align properly */
+
+}
+
+
+
+#notesTable .form-row {
+
+	display: table-row;
+
+}
+
+
+
+/* Adjust the width of specific columns */
+
+#notesTable th:nth-child(3), #notesTable td:nth-child(3), 
+
+#notesTable th:nth-child(4), #notesTable td:nth-child(4) {
+
+    width: 25%; /* Increase width for Created at and Updated at columns */
+
+}
+
+
+
+#notesTable th:nth-child(5), #notesTable td:nth-child(5) {
+
+    width: 10%; /* Set width for the Delete column */
+
+    text-align: center; /* Center-align the delete checkbox */
+
+}
+
+
+
+.employee-info-outter {
+
+	background-color: rgba(255, 255, 255, 0.4);
+
+	text-align: center;
+
+	max-width: 70vw;
+
+	margin: 10px auto;
+
+	border-radius: 15px;
+
+	padding: 10px;
+
+}
+
+
+
+.employee-info {
+
+	background-color: rgba(255, 255, 255, 0.3);
+
+	display: inline-flex;
+
+	flex-direction: column;
+
+	align-items: flex-start;
+
+	margin: 1vh;
+
+	padding: 10px;
+
+	border-radius: 15px;
+
+	font-size: 18px;
+
+	min-width: 18vw;
+
+	min-height: 250px;
+
+}
+
+
+
+.employee-info-table-outter {
+
+	background-color: rgba(255, 255, 255, 0.7);
+
+	display: flex;
+
+	flex-direction: column;
+
+	align-items: center;
+
+	margin: 1vh auto;
+
+	padding: 10px;
+
+	border-radius: 15px;
+
+}
+
+
+
+.employee-info h1,
+
+.employee-info-table-outter h2,
+
+.employee-info-table-outter h3 {
+
+	text-align: center;
+
+	margin-top: 8px;
+
+	color: black;
+
+}
+
+
+
+.employee-info h1 {
+
+	font-size: 22px;
+
+	align-self: center;
+
+}
+
+
+
+.employee-info-table td{
+
+    font-size: 1.0rem;
+
+}
+
+
+
+.employee-info-table th {
+
+    background-color: #333;
+
+    color: #fff;
+
+    font-size: 1.1rem;
+
+}
+
+
+
+.employee-info-table tr:nth-child(even) {
+
+    background-color: #f2f2f2;
+
+}
+
+
+
+.employee-info-table tr:nth-child(odd) {
+
+    background-color: #ddd;
+
+}

@@ -1,0 +1,51 @@
+{% extends "admin_dashboard.html" %}
+
+{% load static %}
+
+{% block title %}Who Is In{% endblock %}
+
+{% block h1_change %} <h1>Who Is In</h1> {% endblock %}
+
+{% block content %}
+<div class="who-is-in-outter">
+    <div class="who-is-in" style="text-align: center;">
+        <h2>Current Employee Status</h2>
+        <br>
+        <table style="margin: 0 auto; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="padding: 10px; border: 1px solid black;">Employee</th>
+                    <th style="padding: 10px; border: 1px solid black;">Clocked In Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for employee in employees %}
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid black;">{{ employee.first_name }} {{ employee.last_name }}</td>
+                        <td style="padding: 10px; border: 1px solid black;">
+                            {% if employee.clocked_in %}
+                                <span style="color: green;">Clocked In</span>
+                            {% else %}
+                                <span style="color: red;">Clocked Out</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="2" style="padding: 10px; border: 1px solid black;">No employees found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+		<br>
+    </div>
+</div>
+{% endblock %}
+
+{% block modal %}
+
+{% endblock %}
+
+{% block footer_scripts %}
+<script src="{% static 'timeclock/javascript/apply-admin-background.js' %}"></script>
+{% endblock %}

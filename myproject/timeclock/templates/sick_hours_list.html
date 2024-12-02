@@ -1,0 +1,77 @@
+{% extends "admin_dashboard.html" %}
+{% load static %}
+
+{% block body_background %}
+{{ background_image_url }}
+{% endblock %}
+
+{% block title %}Sick Hours Management{% endblock %}
+{% block h1_change %}
+<h1> Sick Hours Management </h1>
+{% endblock %}
+
+{% block content %}
+<div class="employees-outter">
+    <div class="employees" style="text-align: center;">
+		<h2>Sick Hours Management</h2>
+		<table style="margin: 0 auto; border-collapse: collapse;">
+			<thead>
+				<tr>
+					<th style="padding: 10px; border: 1px solid black;">First Name</th>
+					<th style="padding: 10px; border: 1px solid black;">Last Name</th>
+					<th style="padding: 10px; border: 1px solid black;">Remaining Hours</th>
+					<th style="padding: 10px; border: 1px solid black;">Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for employee in employees %}
+				<tr>
+					<td style="padding: 10px; border: 1px solid black;">{{ employee.first_name }}</td>
+					<td style="padding: 10px; border: 1px solid black;">{{ employee.last_name }}</td>
+					<td style="padding: 10px; border: 1px solid black;">{{ employee.sick_hours_formatted }}</td>
+					<td style="padding: 10px; border: 1px solid black;">
+						<button type="button" class="btn btn-primary reset-sick-hours-button" data-id="{{ employee.id }}">Reset Hours</button>
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+</div>
+
+<!-- Reset Sick Hours Modal -->
+<div class="modal fade" id="resetSickHoursModal" tabindex="-1" role="dialog" aria-labelledby="resetSickHoursModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resetSickHoursModalLabel">Reset Sick Hours</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="resetSickHoursForm" method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="sick_hours_allocated">New Sick Hours Allocated:</label>
+                        <input type="number" step="0.01" name="sick_hours_allocated" id="sick_hours_allocated" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" id="submitResetSickHours">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer_scripts %}
+<script>
+const base_url = "{% url 'reset_sick_hours' 0 %}";
+</script>
+<script src="{% static 'timeclock/javascript/sick-hours.js' %}"></script>
+<script src="{% static 'timeclock/javascript/apply-admin-background.js' %}"></script>
+
+{% endblock %}

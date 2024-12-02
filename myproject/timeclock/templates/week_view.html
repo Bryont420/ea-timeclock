@@ -1,0 +1,118 @@
+{% extends "admin_dashboard.html" %}
+
+{% load static %}
+
+{% block title %}Employee Week View{% endblock %}
+
+{% block extra_head %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'timeclock/css/week_view.css' %}">
+{% endblock %}
+
+{% block h1_change %} <h1>Employee Week View</h1> {% endblock %}
+
+{% block content %}
+{% if messages %}
+<div class="messages-outter">
+	<div class="messages">
+		{% for message in messages %}
+			<div class="alert {% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</div>
+		{% endfor %}
+		</div>
+    </div>
+{% endif %}
+<div class="day-view-container">
+	<h2>Please Select an Employee and Date Range Below.</h2>
+<br>
+	<div class="date-filter-container">
+		<form id="date-filter-form" method="get" class="date-filter-form">
+			<label for="start_date">Start Date:</label>
+			<input type="date" id="start_date" name="start_date" value="{{ start_date|date:'Y-m-d' }}">
+
+			<label for="end_date">End Date:</label>
+			<input type="date" id="end_date" name="end_date" value="{{ end_date|date:'Y-m-d' }}">
+
+			<label for="employee_name">Employee:</label>
+			<select name="employee_name" id="employee_name" required>
+				<option value="">Select Employee</option>
+				{% for emp in employees %}
+					<option value="{{ emp.id }}" {% if emp.id == employee.id %}selected{% endif %}>
+						{{ emp.first_name }} {{ emp.last_name }}
+					</option>
+				{% endfor %}
+			</select>
+			<button type="submit" id="filter-submit" class="btn btn-success">Filter</button>
+		</form>
+		<!-- Button to Trigger the Modal -->
+		<button type="button" class="btn btn-primary" id="toggle-add-entry" data-toggle="modal" data-target="#addTimeEntryModal">
+		Add Entry
+		</button>		
+	</div>
+	{% if employee %}
+		<div class="header-container">
+			<h2>{{ employee.first_name }} {{ employee.last_name }}</h2>
+			<span class="total-hours">Total Hours: {{ total_hours_display }}</span>
+		</div>
+	{% endif %}
+	<div class="week-table">
+		{% for week in work_weeks %}
+			<div class="week-outter">
+				<table>
+					<thead>
+						<tr>
+							<th colspan="6" class="week-header">
+								<h3>Week Starting: {{ week.start_of_week|date:"m-d-Y" }}</h3>
+							</th>
+						</tr>
+						<tr>
+							<th>Date</th>
+							<th>In</th>
+							<th>Out</th>
+							<th>Hours Worked</th>
+							<th>Notes</th>
+							<th class="edit-text">Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for day, entries in week.day_groups.items %}
+							{% for entry in entries %}
+								<tr>
+									<td class="in-date">{{ entry.clock_in_time_formatted_date }}</td>
+									<td>{{ entry.clock_in_time_formatted }}</td>
+									<td class="{% if entry.clock_out_time is None %}clocked-in{% else %}clocked-out{% endif %} out-time">
+										{% if entry.clock_out_time %}
+											{{ entry.clock_out_time_formatted }}
+										{% else %}
+											Clocked In
+										{% endif %}
+									</td>
+									<td>
+										{{ entry.hours_worked_display }}
+									</td>
+									<td class="notes">
+										{% for note in entry.notes_display %}
+											{{ note|safe|linebreaksbr }}<br>
+										{% endfor %}
+									</td>
+
+									<td class="edit-remove">
+										<button type="button" class="btn btn-primary edit-time-entry" id="button-edit" data-id="{{ entry.id }}">Edit</button> /
+										<button type="button" class="btn btn-danger button-remove" id="button-remove" data-id="{{ entry.id }}">Remove</button>
+									</td>
+								</tr>
+							{% endfor %}
+						{% endfor %}
+						<tr>
+							<td colspan="7"></td>
+						</tr>
+						<tr class="week-total">
+							<td colspan="5" style="text-align: right;"><strong>Total Hours:</strong></td>
+							<td><strong>{{ week.weekly_total_display }}</strong></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		{% endfor %}
+	</div>
+</div>
+{% endblock %}

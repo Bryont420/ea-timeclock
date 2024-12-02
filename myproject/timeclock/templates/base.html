@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    {% load static %}
+    <!-- Include CSS and JavaScript files here -->
+    {% block extra_head %}{% endblock %}
+    <link rel="stylesheet" href="{% static 'timeclock/css/styles.css' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'timeclock/favicon.ico' %}">
+</head>
+<body id="employee-background" data-background-url="{% block body_background %}{% endblock %}">
+    <header>
+        {% block header %}
+        {% endblock %}
+    </header>
+	
+	{% block site_nav %}
+		{% if user.is_staff or user.is_superuser %}
+			{% if not request.resolver_match.url_name == 'timeclock_screen' %}
+				<!-- Show admin navigation if the user is staff or superuser and not on timeclock page -->
+				<nav>
+					<ul>
+						{% if not is_pyqt_client %}
+							<li><a href="{% url 'timeclock_screen' %}" target="_blank" class="{% if request.resolver_match.url_name == 'timeclock_screen' %}active{% endif %}">Time Clock</a></li>
+						{% endif %}
+						<li><a href="{% url 'admin_dashboard' %}" class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">Time Entries</a></li>
+						<li><a href="{% url 'week_view' %}" class="{% if request.resolver_match.url_name == 'week_view' %}active{% endif %}">Week View</a></li>
+						<li><a href="{% url 'who_is_in' %}" class="{% if request.resolver_match.url_name == 'who_is_in' %}active{% endif %}">Who Is In</a></li>
+						<li><a href="{% url 'employee_management' %}" class="{% if request.resolver_match.url_name == 'employee_management' %}active{% endif %}">Employee Management</a></li>
+						<li><a href="{% url 'vacation_hours_list' %}" class="{% if request.resolver_match.url_name == 'vacation-hours' %}active{% endif %}">Vacation Hours</a></li>
+						<li><a href="{% url 'sick_hours_list' %}" class="{% if request.resolver_match.url_name == 'sick-hours' %}active{% endif %}">Sick Hours</a></li>
+						<li><a href="{% url 'admin_dashboard_show_admins' %}" class="{% if request.resolver_match.url_name == 'show-admins' %}active{% endif %}">Staff</a></li>
+					</ul>
+				</nav>
+			{% endif %}
+		{% elif not is_pyqt_client and not user.is_staff %}
+			<!-- Show employee navigation if the user is not staff and not using PyQt client -->
+			<nav>
+				<ul>
+					<li><a href="{% url 'timeclock_screen' %}" class="{% if request.resolver_match.url_name == 'timeclock_screen' %}active{% endif %}">Time Clock</a></li>
+					<!-- Show Employee Info only if on the Time Clock page -->
+					{% if request.resolver_match.url_name == 'timeclock_screen' %}
+						<li><a href="{% url 'employee_info' %}" class="{% if request.resolver_match.url_name == 'employee_info' %}active{% endif %}">Employee Info</a></li>
+					{% endif %}
+				</ul>
+			</nav>
+		{% endif %}
+	{% endblock %}
+
+    <main>
+        {% block content %}{% endblock %}
+        {% block modal %}
+        <!-- Add Time Modal Structure -->
+        <div class="modal fade" id="addTimeEntryModal" tabindex="-1" role="dialog" aria-labelledby="addTimeEntryModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="close_button">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addTimeEntryModalLabel">Add Time Entry</h5>
+                    </div>
+                    <div class="modal-body">
+                        <div id="step1">
+                            <h4>Select Time Entry Type</h4>
+                            <button class="btn btn-dark btn-outline-primary" id="select-regular-time">Regular Time</button>
+                            <button class="btn btn-dark btn-outline-info" id="select-vacation">Vacation Time</button>
+                            <button class="btn btn-dark btn-outline-warning" id="select-holiday">Holiday / Hurricane Time</button>
+							<button class="btn btn-dark btn-outline-danger" id="select-sick">Sick Time</button> <!-- New Sick Time Button -->
+
+						</div>
+
+						<div id="step2-regular" style="display:none;">
+							<form id="regularTimeForm" method="post" action="{% url 'add_time_entry' %}">
+								{% csrf_token %}
+								<input type="hidden" id="current_user" value="{{ user.username }}">
+								<h4>Regular Time Entry</h4>
+								
+								<div class="form-group">
+									<label for="employee_id_regular">Employee:</label>
+									<select name="employee_id" id="employee_id_regular" required>
+										<option value="">Select Employee</option>
+										{% for employee in employees %}
+											<option value="{{ employee.id }}">{{ employee.first_name }} {{ employee.last_name }}</option>
+										{% endfor %}
+									</select>
+								</div>
+								
+								<!-- New Checkbox for Vacation -->
+								<div class="form-group">
+									<label for="is_vacation">Partial Vacation Day?</label>
+									<input type="checkbox" id="is_vacation" name="is_vacation">
+								</div>
+								
+								<div class="form-group">
+									<label for="clock_in_time">Clock In Time:</label>
+									<input type="datetime-local" name="clock_in_time" id="clock_in_time" required>
+								</div>
+						
+								<div class="form-group">
+									<label for="toggle-clocked-in">Clocked In:</label>
+									<input type="checkbox" id="toggle-clocked-in" name="toggle-clocked-in" checked>
+								</div>
+						
+								<div class="form-group" id="clock-out-time-group" style="display: none;">
+									<label for="clock_out_time">Clock Out Time:</label>
+									<input type="datetime-local" name="clock_out_time" id="clock_out_time">
+								</div>
+						
+								<div class="form-group">
+									<label for="notes">Notes:</label>
+									<textarea name="notes" class="notes-textarea" id="notes" rows="4" cols="50" required></textarea>
+								</div>
+							</form>
+						</div>
+
+                        <div id="step2-vacation" style="display:none;">
+                            <form id="vacationForm" method="post" action="{% url 'add_vacation_entry' %}">
+                                {% csrf_token %}
+                                <input type="hidden" id="current_user" value="{{ user.username }}">
+                                <h4>Vacation Time Entry</h4>
+                                <div class="form-group">
+                                    <label for="employee_id_vacation">Employee:</label>
+                                    <select name="employee_id_vacation" id="employee_id_vacation" required>
+                                        <option value="">Select Employee</option>
+                                        {% for employee in employees %}
+                                            <option value="{{ employee.id }}">{{ employee.first_name }} {{ employee.last_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                        
+                                <div class="form-group">
+                                    <label for="start_date_vacation">Start Date:</label>
+                                    <input type="date" name="start_date" id="start_date_vacation" required>
+                                </div>
+                        
+                                <div class="form-group">
+                                    <label for="end_date_vacation">End Date:</label>
+                                    <input type="date" name="end_date" id="end_date_vacation" required>
+                                </div>
+                                
+                                <input type="hidden" name="vacation_notes" id="vacation_notes" value="Vacation Day">
+                            </form>
+                        </div>
+
+						<div id="step2-holiday" style="display:none;">
+							<form id="holidayForm" method="post" action="{% url 'add_holiday_entry' %}">
+								{% csrf_token %}
+								<input type="hidden" id="current_user" value="{{ user.username }}">
+								<h4>Holiday Time Entry</h4>
+								
+								<div class="form-group">
+									<label for="holiday_type">Select Type:</label>
+									<select name="holiday_type" id="holiday_type" required>
+										<option value="Holiday">Holiday</option>
+										<option value="Hurricane">Hurricane</option>
+									</select>
+								</div>
+						
+								<div class="form-group">
+									<label for="employee_id_holiday">Employee/s:</label>
+									<select name="employee_id_holiday" id="employee_id_holiday" multiple required>
+										{% for employee in employees %}
+											<option value="{{ employee.id }}">{{ employee.first_name }} {{ employee.last_name }}</option>
+										{% endfor %}
+									</select>
+								</div>
+						
+								<div class="form-group">
+									<label for="start_date_holiday">Start Date:</label>
+									<input type="date" name="start_date" id="start_date_holiday" required>
+								</div>
+						
+								<div class="form-group">
+									<label for="end_date_holiday">End Date:</label>
+									<input type="date" name="end_date" id="end_date_holiday" required>
+								</div>
+						
+								<input type="hidden" name="holiday_notes" id="holiday_notes" value="Holiday">
+							</form>
+						</div>
+
+						<!-- Sick Time Form -->
+						<div id="step2-sick" style="display:none;"> <!-- New Sick Time Form -->
+							<form id="sickTimeForm" method="post" action="{% url 'add_sick_time_entry' %}">
+								{% csrf_token %}
+								<input type="hidden" id="current_user" value="{{ user.username }}">
+								<h4>Sick Time Entry</h4>
+								<div class="form-group">
+									<label for="employee_id_sick">Employee:</label>
+									<select name="employee_id_sick" id="employee_id_sick" required>
+										<option value="">Select Employee</option>
+										{% for employee in employees %}
+											<option value="{{ employee.id }}">{{ employee.first_name }} {{ employee.last_name }}</option>
+										{% endfor %}
+									</select>
+								</div>
+								
+								<div class="form-group">
+									<label for="clock_in_time_sick">Clock In Time:</label>
+									<input type="datetime-local" name="clock_in_time" id="clock_in_time_sick" required>
+								</div>
+		
+								<div class="form-group">
+									<label for="clock_out_time_sick">Clock Out Time:</label>
+									<input type="datetime-local" name="clock_out_time" id="clock_out_time_sick" required>
+								</div>
+		
+								<input type="hidden" name="sick_notes" id="sick_notes" value="Sick">
+							</form>
+						</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="backToStep1" style="display:none;">Back</button>
+                        <button type="button" class="btn btn-success" id="submitForm" style="display:none;">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Edit Time Entry Modal -->
+        <div class="modal fade" id="editTimeEntryModal" tabindex="-1" role="dialog" aria-labelledby="editTimeEntryModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="close_button">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editTimeEntryModalLabel">Edit Time Entry</h5>
+                    </div>
+					<div class="modal-body">
+						<form id="editTimeEntryForm" method="post">
+							{% csrf_token %}
+							<input type="hidden" id="entry_id" name="entry_id">
+							<div class="form-group">
+								<label for="clock_in_time">Clock In Time:</label>
+								<input type="datetime-local" id="edit_clock_in_time" name="clock_in_time" required>
+							</div>
+							<div class="form-group">
+								<label for="toggle-clocked-in-edit">Clocked In:</label>
+								<input type="checkbox" id="toggle-clocked-in-edit" name="toggle-clocked-in-edit">
+							</div>
+							<div class="form-group" id="edit_clock_out_time_container">
+								<label for="clock_out_time">Clock Out Time:</label>
+								<input type="datetime-local" id="edit_clock_out_time" name="clock_out_time">
+							</div>
+							<div class="form-group">
+								<label for="new_note">Add Note:</label>
+								<textarea id="new_note" name="new_note" cols="40" rows="3"></textarea>
+							</div>
+					
+							<h5>Existing Notes</h5>
+							<table id="notesTable" class="table table-striped">
+								<thead>
+									<tr>
+										<th>Created</th>
+										<th>Note text</th>
+										<th>Created at</th>
+										<th>Updated at</th>
+										<th>Delete?</th>
+									</tr>
+								</thead>
+								<tbody>
+									<!-- Notes will be populated here -->
+								</tbody>
+							</table>
+						</form>
+					</div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-success" id="saveEditTimeEntry">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="loadingSpinner" style="display:none;">
+            <div class="spinner"></div>
+            <div class="loading-text">Loading...</div>
+        </div>
+    </main>
+    {% endblock %}
+	
+{% block footer %}
+{% endblock %}
+
+<!-- Include any extra scripts here -->
+{% block footer_scripts %}
+{% endblock %}
+
+</body>
+</html>

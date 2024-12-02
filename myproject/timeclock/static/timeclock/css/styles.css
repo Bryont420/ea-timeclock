@@ -1,0 +1,94 @@
+/* Style the header to center the h1 */
+header {
+    height: 100px;
+    max-height: 10vh;
+    background: rgba(255, 255, 255, 0.6); /* Optional: Background color for the header */
+    z-index: 10; /* Ensure it stays above other content */
+    display: flex;
+    justify-content: center; /* Center align the content horizontally */
+    align-items: center; /* Center align the content vertically */
+    padding: 0 20px; /* Optional: Add padding to the sides */
+}
+
+/* Style the logout button container */
+.logout-button {
+	width: 100%;
+    display: flex;
+    align-items: center; /* Center align items vertically */
+	justify-content: space-between;
+}
+
+.time-clock {
+	width: 100%;
+    display: flex;
+    align-items: center; /* Center align items vertically */
+	justify-content: center;
+}
+
+/* Reset some default browser styles */
+body, ul {
+    margin: 0;
+    padding: 0;
+}
+
+/* Style the navigation bar */
+nav {
+	background: rgba(51, 51, 51, 0.6); /* Optional: Background color for the header */
+    padding: 10px 20px; /* Add some padding around the nav */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Optional: Adds a slight shadow for depth */
+}
+
+nav ul {
+    list-style-type: none; /* Remove default list bullets */
+    display: flex; /* Display the list items in a row */
+    justify-content: center; /* Space out the items evenly */
+}
+
+nav ul li {
+    margin: 0 15px; /* Add some space between each item */
+}
+
+nav ul li a {
+    color: #fff; /* White text for the links */
+    text-decoration: none; /* Remove the underline from links */
+    font-weight: bold; /* Make the text bold */
+    padding: 8px 16px; /* Add some padding inside the links */
+    border-radius: 4px; /* Rounded corners for the links */
+    transition: background-color 0.3s; /* Smooth transition for hover effects */
+}
+
+nav ul li a:hover {
+    background-color: #575757; /* Darken the background on hover */
+}
+
+/* Optional: Active link styling */
+nav ul li a.active {
+    background-color: #444; /* Different background for the active link */
+    color: #fff; /* Ensure the text stays white */
+}
+
+footer {
+	background-color: rgba(255, 255, 255, 0.6);
+	background-image: url("../images/footer.png");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+	align-items: center;
+	height: 100px;
+	max-height: 10vh
+}
+html, body {
+    min-height: 100vh; /* Ensure the body takes up full height */
+    margin: 0; /* Remove default margin */
+    display: flex;
+    flex-direction: column; /* Stack content vertically */
+}
+
+body {
+    flex: 1; /* Allow the body to grow and fill available space */
+}
+
+main {
+    flex: 1; 
+}
+
