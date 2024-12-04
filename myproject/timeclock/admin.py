@@ -12,7 +12,7 @@ class AdminProfileInline(admin.StackedInline):
     can_delete = False
     verbose_name_plural = 'Admin Profile'
     # Specify any fields you want to display from AdminProfile
-    fields = ['background_image']  # List fields you want to show here
+    fields = ['background_image', 'theme_id']  # List fields you want to show here
     readonly_fields = ['background_image']
 
 # Extend the existing UserAdmin to include AdminProfile inline
@@ -54,8 +54,8 @@ def password_changes(modeladmin, request, queryset):
 	
 # Customize the EmployeeAdmin
 class EmployeeAdmin(admin.ModelAdmin):
-    list_display = ('first_name', 'last_name', 'employee_id', 'clocked_in')
-    list_filter = ('clocked_in', 'last_name')
+    list_display = ('first_name', 'last_name', 'employee_id', 'clocked_in', 'theme_id')
+    list_filter = ('clocked_in', 'last_name', 'theme_id')
     search_fields = ('first_name', 'last_name', 'employee_id')
 
     # Register the custom actions

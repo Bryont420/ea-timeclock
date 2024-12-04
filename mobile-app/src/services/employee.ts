@@ -8,6 +8,7 @@ export interface EmployeeInfo {
     first_name: string;
     last_name: string;
     employee_id: number;
+    email: string;
     vacation_hours_allocated: number;
     vacation_hours_used: number;
     sick_hours_allocated: number;

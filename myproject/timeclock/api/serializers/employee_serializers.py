@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from timeclock.models import Employee
 from timeclock.api.utils import format_hours
+from dateutil.relativedelta import relativedelta
+from datetime import date
 
 class EmployeeSerializer(serializers.ModelSerializer):
     vacation_hours_allocated_display = serializers.SerializerMethodField()
@@ -12,17 +14,20 @@ class EmployeeSerializer(serializers.ModelSerializer):
     vacation_hours_remaining = serializers.SerializerMethodField()
     sick_hours_remaining = serializers.SerializerMethodField()
     department_display = serializers.SerializerMethodField()
+    years_employed = serializers.SerializerMethodField()
+    email = serializers.EmailField(source='user.email', read_only=False)
 
     class Meta:
         model = Employee
         fields = [
-            'id', 'employee_id', 'first_name', 'last_name', 'hire_date', 'years_employed',
-            'vacation_hours_allocated', 'vacation_hours_used', 'vacation_hours_remaining',
-            'sick_hours_allocated', 'sick_hours_used', 'sick_hours_remaining',
+            'id', 'first_name', 'last_name', 'clocked_in', 'hire_date',
+            'employee_id', 'department', 'vacation_hours_allocated',
+            'vacation_hours_used', 'sick_hours_allocated', 'sick_hours_used',
+            'background_image', 'theme_id', 'email',
             'vacation_hours_allocated_display', 'vacation_hours_used_display', 'vacation_hours_remaining_display',
             'sick_hours_allocated_display', 'sick_hours_used_display', 'sick_hours_remaining_display',
-            'department', 'department_display',
-            'background_image'
+            'department_display',
+            'vacation_hours_remaining', 'sick_hours_remaining', 'years_employed'
         ]
 
     def get_vacation_hours_remaining(self, obj):
@@ -61,3 +66,23 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
     def get_department_display(self, obj):
         return obj.get_department_display()
+
+    def get_years_employed(self, obj):
+        if obj.hire_date:
+            delta = relativedelta(date.today(), obj.hire_date)
+            return float(f"{delta.years}.{delta.months}")
+        return 0.0
+
+    def update(self, instance, validated_data):
+        # Update the email field on the related User model
+        user_data = validated_data.pop('user', None)
+        if user_data and 'email' in user_data:
+            instance.user.email = user_data['email']
+            instance.user.save()
+
+        # Update other fields on the Employee instance if necessary
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        return instance

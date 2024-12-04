@@ -25,6 +25,7 @@ import {
 import { useBackground } from '../contexts/BackgroundContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useAutoLogout } from '../hooks/useAutoLogout';
+import ThemeSelector from './ThemeSelector';
 
 /**
  * Props interface for the Layout component.
@@ -97,18 +98,18 @@ export const Layout = React.memo<LayoutProps>(({ children }) => {
         <Box sx={{ pb: 7 }}>
             <AppBar position="static">
                 <Toolbar>
+                    <ThemeSelector />
                     <Typography 
                         variant="h6" 
                         component="div" 
-                        className="app-header"
-                        sx={{ flexGrow: 1 }}
+                        sx={{ flexGrow: 1, textAlign: 'center', fontWeight: 'bold' }}
                     >
-                        Time Clock {user?.is_staff ? '(Admin)' : ''}
+                        {user?.is_staff ? 'Admin Dashboard' : 'Employee Dashboard'}
                     </Typography>
                     <IconButton
+                        edge="end"
                         color="inherit"
                         onClick={handleLogout}
-                        aria-label="logout"
                     >
                         <LogoutIcon />
                     </IconButton>

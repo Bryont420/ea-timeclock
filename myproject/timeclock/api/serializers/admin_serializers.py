@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from ...models import Employee, TimeEntry
+from ...models import Employee, TimeEntry, AdminProfile
 from datetime import date, timedelta
 from decimal import Decimal
 from django.utils import timezone
@@ -113,6 +113,11 @@ class AdminEmployeeSerializer(serializers.ModelSerializer):
             user.save()
         
         return super().update(instance, validated_data)
+
+class AdminProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AdminProfile
+        fields = ['background_image', 'theme_id']
 
 class AdminTimeEntrySerializer(serializers.ModelSerializer):
     employee_id = serializers.CharField(write_only=True)

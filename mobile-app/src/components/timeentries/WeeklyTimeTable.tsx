@@ -16,6 +16,12 @@ import {
     TableFooter,
     Paper,
     styled,
+    Box,
+    useMediaQuery,
+    Typography,
+    Card,
+    CardContent,
+    useTheme
 } from '@mui/material';
 import { TimeEntry } from '../../services/employee';
 import { format, parseISO } from 'date-fns';
@@ -96,76 +102,79 @@ export const WeeklyTimeTable: React.FC<WeeklyTimeTableProps> = memo(({
     weekStart,
     totalHours,
 }) => {
-    /**
-     * Formats a date string in ISO format to MM/dd/yyyy format.
-     * 
-     * @param date - Date string in ISO format
-     * @returns Formatted date string
-     */
-    const formatDate = (date: string) => {
-        return format(parseISO(date), 'MM/dd/yyyy');
-    };
 
-    /**
-     * Formats a time string in ISO format to hh:mm AM/PM format.
-     * 
-     * @param time - Time string in ISO format
-     * @returns Formatted time string
-     */
-    const formatTime = (time: string) => {
-        return format(parseISO(time), 'hh:mm a');
-    };
+    const isMobile = useMediaQuery('(max-width:600px)');
+    const theme = useTheme();
 
     return (
-        <TableContainer component={Paper} sx={{ mb: 3, overflowX: 'auto' }}>
-            <Table size="small">
-                <TableHead>
-                    <TableRow>
-                        <StyledTableHeaderCell>Date</StyledTableHeaderCell>
-                        <StyledTableHeaderCell>Clock In</StyledTableHeaderCell>
-                        <StyledTableHeaderCell>Clock Out</StyledTableHeaderCell>
-                        <StyledTableHeaderCell>Hours</StyledTableHeaderCell>
-                        <StyledTableHeaderCell>Notes</StyledTableHeaderCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
+        <Box>
+            {isMobile ? (
+                <Box>
                     {entries.map((entry) => (
-                        <TableRow key={entry.id}>
-                            <StyledTableCell>{formatDate(entry.clock_in_time)}</StyledTableCell>
-                            <StyledTableCell>{formatTime(entry.clock_in_time)}</StyledTableCell>
-                            <StyledTableCell>
-                                {entry.clock_out_time 
-                                    ? formatTime(entry.clock_out_time)
-                                    : 'Clocked In'}
-                            </StyledTableCell>
-                            <StyledTableCell>{entry.hours_worked_display}</StyledTableCell>
-                            <StyledTableCell sx={{ whiteSpace: 'normal', minWidth: '200px' }}>
+                        <Card key={entry.id} sx={{ mb: 2 }}>
+                            <CardContent>
+                                <Typography variant="h6">Date: {format(parseISO(entry.clock_in_time), 'EEE MM/dd/yyyy')}</Typography>
+                                <Typography variant="body2">Clock In: {format(parseISO(entry.clock_in_time), 'hh:mm a')}</Typography>
+                                <Typography variant="body2">Clock Out: {entry.clock_out_time ? format(parseISO(entry.clock_out_time), 'hh:mm a') : 'Clocked In'}</Typography>
+                                <Typography variant="body2">Hours: {entry.hours_worked_display}</Typography>
+                                <Typography variant="body2">Notes:</Typography>
                                 {entry.notes?.map((note, index) => (
-                                    <div key={index}>
-                                        <small>{note.note_text}</small>
-                                        <br />
-                                        <small style={{ color: 'gray' }}>
-                                            - {note.created_by.username} ({format(parseISO(note.created_at), 'MM/dd/yyyy')})
-                                        </small>
-                                    </div>
+                                    <Typography key={index} variant="body2" sx={{ ml: 2, color: theme.palette.primary.main }}>
+                                        - {note.note_text} ({note.created_by.username}, {format(parseISO(note.created_at), 'MM/dd/yyyy')})
+                                    </Typography>
                                 ))}
-                            </StyledTableCell>
-                        </TableRow>
+                            </CardContent>
+                        </Card>
                     ))}
-                </TableBody>
-                <TableFooter>
-                    <StyledTotalRow>
-                        <StyledTableCell colSpan={3} align="right">
-                            <strong>Total Hours:</strong>
-                        </StyledTableCell>
-                        <StyledTableCell>
-                            <strong>{totalHours}</strong>
-                        </StyledTableCell>
-                        <StyledTableCell />
-                    </StyledTotalRow>
-                </TableFooter>
-            </Table>
-        </TableContainer>
+                </Box>
+            ) : (
+                <TableContainer component={Paper} sx={{ mb: 3, overflowX: 'auto' }}>
+                    <Table size="small">
+                        <TableHead>
+                            <TableRow>
+                                <StyledTableHeaderCell>Date</StyledTableHeaderCell>
+                                <StyledTableHeaderCell>Clock In</StyledTableHeaderCell>
+                                <StyledTableHeaderCell>Clock Out</StyledTableHeaderCell>
+                                <StyledTableHeaderCell>Hours</StyledTableHeaderCell>
+                                <StyledTableHeaderCell>Notes</StyledTableHeaderCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {entries.map((entry) => (
+                                <TableRow key={entry.id}>
+                                    <StyledTableCell>{format(parseISO(entry.clock_in_time), 'EEE MM/dd/yyyy')}</StyledTableCell>
+                                    <StyledTableCell>{format(parseISO(entry.clock_in_time), 'hh:mm a')}</StyledTableCell>
+                                    <StyledTableCell>{entry.clock_out_time ? format(parseISO(entry.clock_out_time), 'hh:mm a') : 'Clocked In'}</StyledTableCell>
+                                    <StyledTableCell>{entry.hours_worked_display}</StyledTableCell>
+                                    <StyledTableCell sx={{ whiteSpace: 'normal', minWidth: '200px' }}>
+                                        {entry.notes?.map((note, index) => (
+                                            <div key={index}>
+                                                <small>{note.note_text}</small>
+                                                <br />
+                                                <small style={{ color: theme.palette.primary.main }}>
+                                                    - {note.created_by.username} ({format(parseISO(note.created_at), 'MM/dd/yyyy')})
+                                                </small>
+                                            </div>
+                                        ))}
+                                    </StyledTableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                        <TableFooter>
+                            <StyledTotalRow>
+                                <StyledTableCell colSpan={3} align="right">
+                                    <strong>Total Hours:</strong>
+                                </StyledTableCell>
+                                <StyledTableCell>
+                                    <strong>{totalHours}</strong>
+                                </StyledTableCell>
+                                <StyledTableCell />
+                            </StyledTotalRow>
+                        </TableFooter>
+                    </Table>
+                </TableContainer>
+            )}
+        </Box>
     );
 });
 

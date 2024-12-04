@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 class AdminProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     background_image = models.CharField(max_length=255, blank=True, null=True)
+    theme_id = models.CharField(max_length=50, default='light')
 
 @receiver(post_save, sender=User)
 def create_admin_profile(sender, instance, created, **kwargs):
@@ -53,6 +54,7 @@ class Employee(models.Model):
     background_image = models.CharField(max_length=255, null=True, blank=True)
     future_vacation_hours_used = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     future_sick_hours_used = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    theme_id = models.CharField(max_length=50, default='light')
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} (ID: {self.employee_id})"

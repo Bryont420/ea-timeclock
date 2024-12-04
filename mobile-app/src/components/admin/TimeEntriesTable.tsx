@@ -15,7 +15,11 @@ import {
     Paper,
     IconButton,
     Chip,
-    Box
+    Box,
+    useMediaQuery,
+    Typography,
+    Card,
+    CardContent
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -56,111 +60,145 @@ export const TimeEntriesTable: React.FC<TimeEntriesTableProps> = ({
     onEdit,
     onDelete,
 }) => {
+    const isMobile = useMediaQuery('(max-width:600px)');
+
     return (
-        <TableContainer 
-            component={Paper}
-            sx={{
-                overflowX: 'auto',
-                '& .MuiTable-root': {
-                    minWidth: 650,
-                },
-                '& .MuiTableCell-root': {
-                    whiteSpace: 'nowrap',
-                    padding: { xs: 1, sm: 2 },
-                    '&.notes-cell': {
-                        whiteSpace: 'normal',
-                        minWidth: '200px'
-                    }
-                },
-                '& .hide-on-mobile': {
-                    display: { xs: 'none', sm: 'table-cell' }
-                }
-            }}
-        >
-            <Table size="small">
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Employee</TableCell>
-                        <TableCell>Date</TableCell>
-                        <TableCell>Clock In</TableCell>
-                        <TableCell>Clock Out</TableCell>
-                        <TableCell className="hide-on-mobile">Hours</TableCell>
-                        <TableCell className="notes-cell hide-on-mobile">Notes</TableCell>
-                        <TableCell>Actions</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
+        <Box>
+            {isMobile ? (
+                <Box>
                     {timeEntries.map((entry) => (
-                        <TableRow key={entry.id}>
-                            <TableCell>{entry.employee_name}</TableCell>
-                            <TableCell>
-                                {format(parseISO(entry.entry_date), 'EEE MM/dd/yy')}
-                            </TableCell>
-                            <TableCell>{entry.clock_in_time_formatted}</TableCell>
-                            <TableCell>
-                                {entry.clock_out_time_formatted || (
-                                    <Chip 
-                                        label="Clocked In" 
-                                        color="success" 
-                                        size="small"
-                                        sx={{ 
-                                            fontWeight: 'bold',
-                                            backgroundColor: '#4caf50',
-                                            color: 'white'
-                                        }}
-                                    />
-                                )}
-                            </TableCell>
-                            <TableCell className="hide-on-mobile">{entry.hours_worked_display}</TableCell>
-                            <TableCell className="notes-cell hide-on-mobile">
-                                {entry.notes_display?.map((note) => (
-                                    <div key={note.id}>
-                                        <small>{note.note_text}</small>
-                                        <br />
-                                        <small style={{ color: 'gray' }}>
-                                            - {note.created_by} ({new Date(note.created_at).toLocaleDateString()})
-                                        </small>
-                                    </div>
-                                ))}
-                            </TableCell>
-                            <TableCell>
-                                <Box sx={{ display: 'flex', gap: 1 }}>
-                                    <IconButton
-                                        size="small"
-                                        onClick={() => onEdit(entry)}
-                                        aria-label="edit"
-                                        color="primary"
-                                        sx={{ 
-                                            backgroundColor: 'primary.main',
-                                            color: 'white',
-                                            '&:hover': {
-                                                backgroundColor: 'primary.dark',
-                                            }
-                                        }}
-                                    >
-                                        <EditIcon />
+                        <Card key={entry.id} sx={{ mb: 2 }}>
+                            <CardContent>
+                                <Typography variant="h6">{entry.employee_name}</Typography>
+                                <Typography variant="body2">
+                                    Date: {format(parseISO(entry.entry_date), 'EEE MM/dd/yy')}
+                                </Typography>
+                                <Typography variant="body2">
+                                    Clock In: {entry.clock_in_time_formatted}
+                                </Typography>
+                                <Typography variant="body2">
+                                    Clock Out: {entry.clock_out_time_formatted || (
+                                        <Chip 
+                                            label="Clocked In" 
+                                            color="success" 
+                                            size="small"
+                                            sx={{ 
+                                                fontWeight: 'bold',
+                                                backgroundColor: '#4caf50',
+                                                color: 'white'
+                                            }}
+                                        />
+                                    )}
+                                </Typography>
+                                <Typography variant="body2">
+                                    Hours: {entry.hours_worked_display}
+                                </Typography>
+                                <Typography variant="body2">
+                                    Notes: {entry.notes_display?.map((note) => (
+                                        <div key={note.id}>
+                                            <small>{note.note_text}</small>
+                                            <br />
+                                            <small style={{ color: 'gray' }}>
+                                                - {note.created_by} ({new Date(note.created_at).toLocaleDateString()})
+                                            </small>
+                                        </div>
+                                    ))}
+                                </Typography>
+                                <Box sx={{ mt: 1 }}>
+                                    <IconButton onClick={() => onEdit(entry)} sx={{ color: 'primary.main' }}>
+                                        <EditIcon fontSize="small" />
                                     </IconButton>
-                                    <IconButton
-                                        size="small"
-                                        onClick={() => onDelete(entry)}
-                                        aria-label="delete"
-                                        color="error"
-                                        sx={{ 
-                                            backgroundColor: 'error.main',
-                                            color: 'white',
-                                            '&:hover': {
-                                                backgroundColor: 'error.dark',
-                                            }
-                                        }}
-                                    >
-                                        <DeleteIcon />
+                                    <IconButton onClick={() => onDelete(entry)} sx={{ color: 'error.main' }}>
+                                        <DeleteIcon fontSize="small" />
                                     </IconButton>
                                 </Box>
-                            </TableCell>
-                        </TableRow>
+                            </CardContent>
+                        </Card>
                     ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
+                </Box>
+            ) : (
+                <TableContainer 
+                    component={Paper}
+                    sx={{
+                        overflowX: 'auto',
+                        '& .MuiTable-root': {
+                            minWidth: 650,
+                        },
+                        '& .MuiTableCell-root': {
+                            whiteSpace: 'nowrap',
+                            padding: { xs: 0.5, sm: 2 },
+                            '&.notes-cell': {
+                                whiteSpace: 'normal',
+                                minWidth: '150px'
+                            }
+                        },
+                        '& .hide-on-mobile': {
+                            display: { xs: 'none', sm: 'table-cell' }
+                        }
+                    }}
+                >
+                    <Table size="small">
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Employee</TableCell>
+                                <TableCell>Date</TableCell>
+                                <TableCell>Clock In</TableCell>
+                                <TableCell>Clock Out</TableCell>
+                                <TableCell className="hide-on-mobile">Hours</TableCell>
+                                <TableCell className="notes-cell hide-on-mobile">Notes</TableCell>
+                                <TableCell>Actions</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {timeEntries.map((entry) => (
+                                <TableRow key={entry.id}>
+                                    <TableCell>{entry.employee_name}</TableCell>
+                                    <TableCell>
+                                        {format(parseISO(entry.entry_date), 'EEE MM/dd/yy')}
+                                    </TableCell>
+                                    <TableCell>{entry.clock_in_time_formatted}</TableCell>
+                                    <TableCell>
+                                        {entry.clock_out_time_formatted || (
+                                            <Chip 
+                                                label="Clocked In" 
+                                                color="success" 
+                                                size="small"
+                                                sx={{ 
+                                                    fontWeight: 'bold',
+                                                    backgroundColor: '#4caf50',
+                                                    color: 'white'
+                                                }}
+                                            />
+                                        )}
+                                    </TableCell>
+                                    <TableCell className="hide-on-mobile">{entry.hours_worked_display}</TableCell>
+                                    <TableCell className="notes-cell hide-on-mobile">
+                                        {entry.notes_display?.map((note) => (
+                                            <div key={note.id}>
+                                                <small>{note.note_text}</small>
+                                                <br />
+                                                <small style={{ color: 'gray' }}>
+                                                    - {note.created_by} ({new Date(note.created_at).toLocaleDateString()})
+                                                </small>
+                                            </div>
+                                        ))}
+                                    </TableCell>
+                                    <TableCell>
+                                        <IconButton onClick={() => onEdit(entry)} sx={{ color: 'primary.main' }}>
+                                            <EditIcon fontSize="small" />
+                                        </IconButton>
+                                        <IconButton onClick={() => onDelete(entry)} sx={{ color: 'error.main' }}>
+                                            <DeleteIcon fontSize="small" />
+                                        </IconButton>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            )}
+        </Box>
     );
 };
+
+export default TimeEntriesTable;
