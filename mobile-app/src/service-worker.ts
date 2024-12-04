@@ -72,6 +72,16 @@ registerRoute(
 // This allows the web app to trigger skipWaiting via
 // registration.waiting.postMessage({type: 'SKIP_WAITING'})
 self.addEventListener('message', (event) => {
+  // Check if the message is from a trusted origin
+  const trustedOrigins = [
+    'https://ea-time-clock.duckdns.org:1832',
+    'http://localhost:1832', // Assuming your local React app runs on this port
+  ];
+  if (!trustedOrigins.includes(event.origin)) {
+    console.warn('Untrusted message origin:', event.origin);
+    return;
+  }
+
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }

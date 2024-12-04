@@ -92,17 +92,7 @@ class AdminEmployeeSerializer(serializers.ModelSerializer):
         return "Clocked In"
 
     def create(self, validated_data):
-        # Create a new user for the employee if needed
-        user = User.objects.create_user(
-            username=validated_data['employee_id'],
-            password='changeme',  # Default password that must be changed on first login
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name']
-        )
-        employee = Employee.objects.create(user=user, **validated_data)
-        employee.force_password_change = True
-        employee.save()
-        return employee
+        raise NotImplementedError("User creation is not allowed from this serializer.")
 
     def update(self, instance, validated_data):
         # Update the associated user if it exists

@@ -58,8 +58,9 @@ axiosInstance.interceptors.response.use(
             // If it's a 503 error, wait a bit and retry once
             if (error.response?.status === 503 && !originalRequest._retry) {
                 originalRequest._retry = true;
-                // Wait 2 seconds before retrying
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                // Use a fixed delay to handle 503 errors
+                const retryDelay = 2000; // 2 seconds
+                await new Promise(resolve => setTimeout(resolve, retryDelay));
                 return axios(originalRequest);
             }
             return Promise.reject(error);
