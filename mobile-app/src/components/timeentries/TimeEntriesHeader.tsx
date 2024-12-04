@@ -9,6 +9,7 @@ import {
     Typography,
     Box,
     Divider,
+    useTheme
 } from '@mui/material';
 import { format } from 'date-fns';
 
@@ -44,6 +45,9 @@ export const TimeEntriesHeader: React.FC<TimeEntriesHeaderProps> = memo((
         weekTotalHours,
     }
 ) => {
+    const theme = useTheme();
+    const backgroundColor = theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(48, 48, 48, 0.6)';
+
     // Create dates using local components to avoid timezone issues
     const startDate = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate());
     const endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + 6);
@@ -53,10 +57,10 @@ export const TimeEntriesHeader: React.FC<TimeEntriesHeaderProps> = memo((
             <Typography variant="h5" component="h1" gutterBottom>
                 Time Entries
             </Typography>
-            <Typography variant="subtitle1" color="textSecondary" gutterBottom>
+            <Typography variant="subtitle1" color="textSecondary" gutterBottom sx={{ backgroundColor, padding: '8px 16px', borderRadius: '4px' }}>
                 Week of {format(startDate, 'MMM d')} - {format(endDate, 'MMM d')}
             </Typography>
-            <Typography variant="subtitle1" gutterBottom>
+            <Typography variant="subtitle1" gutterBottom sx={{ backgroundColor, padding: '8px 16px', borderRadius: '4px' }}>
                 <strong>Total Hours This Week:</strong> {weekTotalHours}
             </Typography>
             <Divider sx={{ mt: 2 }} />

@@ -16,6 +16,10 @@ import {
   Dialog,
   Tooltip,
   Button,
+  useMediaQuery,
+  Card,
+  CardContent,
+  useTheme
 } from '@mui/material';
 import { format, parseISO, isBefore, startOfToday } from 'date-fns';
 import EditIcon from '@mui/icons-material/Edit';
@@ -36,6 +40,9 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
   const [editingRequest, setEditingRequest] = useState<TimeOffRequest | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showPreviousRequests, setShowPreviousRequests] = useState(false);
+
+  const isMobile = useMediaQuery('(max-width:600px)');
+  const theme = useTheme();
 
   const fetchRequests = async () => {
     try {
@@ -97,6 +104,32 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
     }
   };
 
+  const getRequestTypeColor = (type: TimeOffRequest['request_type']) => {
+    switch (type) {
+      case 'vacation':
+        return 'primary';
+      case 'sick':
+        return 'secondary';
+      case 'unpaid':
+        return 'default';
+      default:
+        return 'default';
+    }
+  };
+
+  const getStatusColor = (status: TimeOffRequest['status']) => {
+    switch (status) {
+      case 'approved':
+        return 'success';
+      case 'denied':
+        return 'error';
+      case 'pending':
+        return 'warning';
+      default:
+        return 'default';
+    }
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" p={3}>
@@ -154,109 +187,123 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
     );
   }
 
-  const getRequestTypeColor = (type: TimeOffRequest['request_type']) => {
-    switch (type) {
-      case 'vacation':
-        return 'primary';
-      case 'sick':
-        return 'secondary';
-      case 'unpaid':
-        return 'default';
-      default:
-        return 'default';
-    }
-  };
-
-  const getStatusColor = (status: TimeOffRequest['status']) => {
-    switch (status) {
-      case 'approved':
-        return 'success';
-      case 'denied':
-        return 'error';
-      case 'pending':
-        return 'warning';
-      default:
-        return 'default';
-    }
-  };
-
   return (
-    <>
-      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setShowPreviousRequests(!showPreviousRequests)}
-          startIcon={showPreviousRequests ? <VisibilityOffIcon /> : <VisibilityIcon />}
-        >
-          {showPreviousRequests ? 'Hide Previous Requests' : 'Show Previous Requests'}
-        </Button>
-      </Box>
-
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Type</TableCell>
-              <TableCell>Start Date</TableCell>
-              <TableCell>End Date</TableCell>
-              <TableCell>Hours</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Reason</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredRequests.map((request) => (
-              <TableRow key={request.id}>
-                <TableCell>
-                  <Chip
-                    label={request.request_type_display || request.request_type}
-                    color={getRequestTypeColor(request.request_type)}
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell>{formatDate(request.start_date)}</TableCell>
-                <TableCell>{formatDate(request.end_date)}</TableCell>
-                <TableCell>{request.hours_requested}</TableCell>
-                <TableCell>
-                  <Chip
-                    label={request.status_display || request.status}
-                    color={getStatusColor(request.status)}
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell>{request.reason || '-'}</TableCell>
-                <TableCell>
+    <Box>
+      {isMobile ? (
+        <Box>
+          {filteredRequests.map((request) => (
+            <Card key={request.id} sx={{ mb: 2 }}>
+              <CardContent>
+                <Typography variant="h6">{request.employee_name}</Typography>
+                <Typography variant="body2">Type: {request.request_type_display || request.request_type}</Typography>
+                <Typography variant="body2">Start Date: {formatDate(request.start_date)}</Typography>
+                <Typography variant="body2">End Date: {formatDate(request.end_date)}</Typography>
+                <Typography variant="body2">Hours: {request.hours_requested}</Typography>
+                <Chip label={`Status: ${request.status}`} color={getStatusColor(request.status)} size="small" />
+                <Typography variant="body2" sx={{ color: theme.palette.primary.main }}>Reason: {request.reason || '-'}</Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
                   {canModifyRequest(request) && (
                     <>
-                      <Tooltip title="Edit Request">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleEdit(request)}
-                          color="primary"
-                        >
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete Request">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleDelete(request)}
-                          color="error"
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<EditIcon />}
+                        onClick={() => handleEdit(request)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="contained"
+                        color="secondary"
+                        startIcon={<DeleteIcon />}
+                        onClick={() => handleDelete(request)}
+                      >
+                        Delete
+                      </Button>
                     </>
                   )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
+                </Box>
+              </CardContent>
+            </Card>
+          ))}
+        </Box>
+      ) : (
+        <Box>
+          <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setShowPreviousRequests(!showPreviousRequests)}
+              startIcon={showPreviousRequests ? <VisibilityOffIcon /> : <VisibilityIcon />}
+            >
+              {showPreviousRequests ? 'Hide Previous Requests' : 'Show Previous Requests'}
+            </Button>
+          </Box>
+          <TableContainer component={Paper} sx={{ mb: 3 }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Type</TableCell>
+                  <TableCell>Start Date</TableCell>
+                  <TableCell>End Date</TableCell>
+                  <TableCell>Hours</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Reason</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredRequests.map((request) => (
+                  <TableRow key={request.id}>
+                    <TableCell>
+                      <Chip
+                        label={request.request_type_display || request.request_type}
+                        color={getRequestTypeColor(request.request_type)}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>{formatDate(request.start_date)}</TableCell>
+                    <TableCell>{formatDate(request.end_date)}</TableCell>
+                    <TableCell>{request.hours_requested}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={request.status_display || request.status}
+                        color={getStatusColor(request.status)}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell sx={{ color: theme.palette.primary.main }}>{request.reason || '-'}</TableCell>
+                    <TableCell>
+                      {canModifyRequest(request) && (
+                        <>
+                          <Tooltip title="Edit">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleEdit(request)}
+                              color="primary"
+                            >
+                              <EditIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleDelete(request)}
+                              color="error"
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      )}
       <Dialog
         open={showEditDialog}
         onClose={() => setShowEditDialog(false)}
@@ -275,7 +322,7 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
           />
         )}
       </Dialog>
-    </>
+    </Box>
   );
 });
 

@@ -4,15 +4,18 @@
  * organized layout with responsive grid for time-off information.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
     Typography, 
     Card,
     CardContent,
     Divider,
     Grid,
+    TextField,
+    Button
 } from '@mui/material';
 import { EmployeeInfo } from '../../services/employee';
+import { axiosInstance } from '../../utils/axios';
 
 /**
  * Props interface for the EmployeeInfoCard component.
@@ -41,6 +44,22 @@ interface EmployeeInfoCardProps {
  * @returns The employee information card component
  */
 export const EmployeeInfoCard: React.FC<EmployeeInfoCardProps> = ({ employee }) => {
+    const [email, setEmail] = useState(employee.email);
+    const [isEditing, setIsEditing] = useState(false);
+
+    const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setEmail(event.target.value);
+    };
+
+    const saveEmail = async () => {
+        try {
+            await axiosInstance.put('/api/employee/email/update/', { email });
+            setIsEditing(false);
+        } catch (error) {
+            console.error('Failed to update email:', error);
+        }
+    };
+
     return (
         <Card sx={{ mb: 2 }}>
             <CardContent>
@@ -56,6 +75,33 @@ export const EmployeeInfoCard: React.FC<EmployeeInfoCardProps> = ({ employee }) 
                 </Typography>
                 <Typography variant="body1" gutterBottom>
                     <strong>Years Employed:</strong> {employee.years_employed.toFixed(1)}
+                </Typography>
+                <Typography variant="body1" gutterBottom>
+                    <strong>Email:</strong> {isEditing ? (
+                        <TextField
+                            variant="outlined"
+                            size="small"
+                            value={email}
+                            onChange={handleEmailChange}
+                            sx={{ mr: 2 }}
+                        />
+                    ) : (
+                        email
+                    )}
+                    {isEditing ? (
+                        <Button onClick={saveEmail} sx={{ ml: 2 }}>
+                            Save
+                        </Button>
+                    ) : (
+                        <Button onClick={() => setIsEditing(true)} sx={{ ml: 2 }}>
+                            Edit
+                        </Button>
+                    )}
+                    {isEditing && (
+                        <Button onClick={() => setIsEditing(false)} sx={{ ml: 2 }}>
+                            Cancel
+                        </Button>
+                    )}
                 </Typography>
 
                 <Grid container spacing={2} sx={{ mt: 2 }}>

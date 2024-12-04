@@ -16,6 +16,8 @@ from .views.base_views import (
     background_image
 )
 from .views.auth_views import logout_view
+from .views import theme_views
+from .views.email_update_view import EmailUpdateView
 
 router = routers.DefaultRouter()
 router.register(r'time-off-requests', TimeOffRequestViewSet, basename='time-off-request')
@@ -33,4 +35,8 @@ urlpatterns = [
     path('admin/time-entries/vacation/', add_vacation_entry, name='api_add_vacation_entry'),
     path('admin/time-entries/sick/', add_sick_time_entry, name='api_add_sick_time_entry'),
     path('admin/time-entries/holiday/', add_holiday_entry, name='api_add_holiday_entry'),
+    # Theme preferences endpoints
+    path('user/preferences/theme/', theme_views.get_theme_preference, name='get_theme_preference'),
+    path('user/preferences/theme/update/', theme_views.update_theme_preference, name='update_theme_preference'),
+    path('employee/email/update/', EmailUpdateView.as_view(), name='email-update'),
 ] + router.urls

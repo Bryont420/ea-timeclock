@@ -72,13 +72,6 @@ registerRoute(
 // This allows the web app to trigger skipWaiting via
 // registration.waiting.postMessage({type: 'SKIP_WAITING'})
 self.addEventListener('message', (event) => {
-  // Check if the message is from our own origin
-  const validOrigins = [self.location.origin];
-  if (!validOrigins.includes(event.origin)) {
-    console.warn('Rejected message from unauthorized origin:', event.origin);
-    return;
-  }
-
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }

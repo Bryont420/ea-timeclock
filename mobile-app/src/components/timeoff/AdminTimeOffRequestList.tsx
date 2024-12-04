@@ -26,6 +26,9 @@ import {
   DialogContentText,
   DialogActions,
   TextField,
+  useMediaQuery,
+  Card,
+  CardContent
 } from '@mui/material';
 import { format, parseISO } from 'date-fns';
 import { getTimeOffRequests, TimeOffRequest, reviewTimeOffRequest } from '../../services/timeoff';
@@ -75,6 +78,8 @@ const AdminTimeOffRequestList: React.FC = () => {
   const [reviewAction, setReviewAction] = useState<'approved' | 'denied' | null>(null);
   const [showProcessedRequests, setShowProcessedRequests] = useState(false);
   const [dialogProcessing, setDialogProcessing] = useState(false);
+
+  const isMobile = useMediaQuery('(max-width:600px)');
 
   /**
    * Fetches time off requests from the API.
@@ -291,80 +296,143 @@ const AdminTimeOffRequestList: React.FC = () => {
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Employee</TableCell>
-              <TableCell>Type</TableCell>
-              <TableCell>Start Date</TableCell>
-              <TableCell>End Date</TableCell>
-              <TableCell>Hours</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Reason</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredRequests.map((request) => (
-              <TableRow key={request.id}>
-                <TableCell>
-                  {request.employee_name || 'Unknown'}
-                </TableCell>
-                <TableCell>
-                  <Chip
-                    label={request.request_type_display || request.request_type}
-                    color={getRequestTypeColor(request.request_type)}
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell>{formatDate(request.start_date)}</TableCell>
-                <TableCell>{formatDate(request.end_date)}</TableCell>
-                <TableCell>{request.hours_requested}</TableCell>
-                <TableCell>
-                  <Chip
+      {isMobile ? (
+        <Box>
+          {filteredRequests.map((request) => (
+            <Card key={request.id} sx={{ mb: 2 }}>
+              <CardContent>
+                <Typography variant="h6">{request.employee_name}</Typography>
+                <Typography variant="body2">
+                  Type: {request.request_type_display || request.request_type}
+                </Typography>
+                <Typography variant="body2">
+                  Start Date: {formatDate(request.start_date)}
+                </Typography>
+                <Typography variant="body2">
+                  End Date: {formatDate(request.end_date)}
+                </Typography>
+                <Typography variant="body2">
+                  Hours: {request.hours_requested}
+                </Typography>
+                <Typography variant="body2">
+                  Status: <Chip
                     label={request.status_display || request.status}
                     color={getStatusColor(request.status)}
                     size="small"
                   />
-                </TableCell>
-                <TableCell>{request.reason}</TableCell>
-                <TableCell>
-                  {request.status === 'pending' && (
-                    <Box>
-                      <Button
-                        size="small"
-                        color="success"
-                        onClick={() => handleReviewClick(request, 'approved')}
-                        sx={{ mr: 1 }}
-                        disabled={processingRequests[request.id]}
-                      >
-                        {processingRequests[request.id] ? (
-                          <CircularProgress size={20} color="inherit" />
-                        ) : (
-                          'Approve'
-                        )}
-                      </Button>
-                      <Button
-                        size="small"
-                        color="error"
-                        onClick={() => handleReviewClick(request, 'denied')}
-                        disabled={processingRequests[request.id]}
-                      >
-                        {processingRequests[request.id] ? (
-                          <CircularProgress size={20} color="inherit" />
-                        ) : (
-                          'Deny'
-                        )}
-                      </Button>
-                    </Box>
-                  )}
-                </TableCell>
+                </Typography>
+                <Typography variant="body2">
+                  Reason: {request.reason}
+                </Typography>
+                {request.status === 'pending' && (
+                  <Box>
+                    <Button
+                      size="small"
+                      color="success"
+                      onClick={() => handleReviewClick(request, 'approved')}
+                      sx={{ mr: 1 }}
+                      disabled={processingRequests[request.id]}
+                    >
+                      {processingRequests[request.id] ? (
+                        <CircularProgress size={20} color="inherit" />
+                      ) : (
+                        'Approve'
+                      )}
+                    </Button>
+                    <Button
+                      size="small"
+                      color="error"
+                      onClick={() => handleReviewClick(request, 'denied')}
+                      disabled={processingRequests[request.id]}
+                    >
+                      {processingRequests[request.id] ? (
+                        <CircularProgress size={20} color="inherit" />
+                      ) : (
+                        'Deny'
+                      )}
+                    </Button>
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </Box>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Employee</TableCell>
+                <TableCell>Type</TableCell>
+                <TableCell>Start Date</TableCell>
+                <TableCell>End Date</TableCell>
+                <TableCell>Hours</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Reason</TableCell>
+                <TableCell>Actions</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {filteredRequests.map((request) => (
+                <TableRow key={request.id}>
+                  <TableCell>
+                    {request.employee_name || 'Unknown'}
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={request.request_type_display || request.request_type}
+                      color={getRequestTypeColor(request.request_type)}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>{formatDate(request.start_date)}</TableCell>
+                  <TableCell>{formatDate(request.end_date)}</TableCell>
+                  <TableCell>{request.hours_requested}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={request.status_display || request.status}
+                      color={getStatusColor(request.status)}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>{request.reason}</TableCell>
+                  <TableCell>
+                    {request.status === 'pending' && (
+                      <Box>
+                        <Button
+                          size="small"
+                          color="success"
+                          onClick={() => handleReviewClick(request, 'approved')}
+                          sx={{ mr: 1 }}
+                          disabled={processingRequests[request.id]}
+                        >
+                          {processingRequests[request.id] ? (
+                            <CircularProgress size={20} color="inherit" />
+                          ) : (
+                            'Approve'
+                          )}
+                        </Button>
+                        <Button
+                          size="small"
+                          color="error"
+                          onClick={() => handleReviewClick(request, 'denied')}
+                          disabled={processingRequests[request.id]}
+                        >
+                          {processingRequests[request.id] ? (
+                            <CircularProgress size={20} color="inherit" />
+                          ) : (
+                            'Deny'
+                          )}
+                        </Button>
+                      </Box>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
 
       <Dialog
         open={showReviewDialog}
