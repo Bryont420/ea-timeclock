@@ -150,16 +150,29 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
   if (!filteredRequests.length) {
     return (
       <>
-        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => setShowPreviousRequests(!showPreviousRequests)}
-            startIcon={showPreviousRequests ? <VisibilityOffIcon /> : <VisibilityIcon />}
-          >
-            {showPreviousRequests ? 'Hide Previous Requests' : 'Show Previous Requests'}
-          </Button>
-        </Box>
+        {isMobile ? (
+          <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setShowPreviousRequests(!showPreviousRequests)}
+              startIcon={showPreviousRequests ? <VisibilityOffIcon /> : <VisibilityIcon />}
+            >
+              {showPreviousRequests ? 'Hide Previous Requests' : 'Show Previous Requests'}
+            </Button>
+          </Box>
+        ) : (
+          <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setShowPreviousRequests(!showPreviousRequests)}
+              startIcon={showPreviousRequests ? <VisibilityOffIcon /> : <VisibilityIcon />}
+            >
+              {showPreviousRequests ? 'Hide Previous Requests' : 'Show Previous Requests'}
+            </Button>
+          </Box>
+        )}
         <Paper 
           elevation={2} 
           sx={{ 
@@ -191,6 +204,16 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
     <Box>
       {isMobile ? (
         <Box>
+          <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setShowPreviousRequests(!showPreviousRequests)}
+              startIcon={showPreviousRequests ? <VisibilityOffIcon /> : <VisibilityIcon />}
+            >
+              {showPreviousRequests ? 'Hide Previous Requests' : 'Show Previous Requests'}
+            </Button>
+          </Box>
           {filteredRequests.map((request) => (
             <Card key={request.id} sx={{ mb: 2 }}>
               <CardContent>
