@@ -12,14 +12,11 @@ import {
   Chip,
   CircularProgress,
   Alert,
-  IconButton,
   Dialog,
-  Tooltip,
   Button,
   useMediaQuery,
   Card,
   CardContent,
-  useTheme
 } from '@mui/material';
 import { format, parseISO, isBefore, startOfToday } from 'date-fns';
 import EditIcon from '@mui/icons-material/Edit';
@@ -42,7 +39,6 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
   const [showPreviousRequests, setShowPreviousRequests] = useState(false);
 
   const isMobile = useMediaQuery('(max-width:600px)');
-  const theme = useTheme();
 
   const fetchRequests = async () => {
     try {
@@ -201,7 +197,7 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
   }
 
   return (
-    <Box>
+    <Box sx={{ color: 'text.primary' }}>
       {isMobile ? (
         <Box>
           <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
@@ -215,15 +211,15 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
             </Button>
           </Box>
           {filteredRequests.map((request) => (
-            <Card key={request.id} sx={{ mb: 2 }}>
+            <Card key={request.id} sx={{ mb: 2, backgroundColor: 'background.paper', color: 'text.primary' }}>
               <CardContent>
-                <Typography variant="h6">{request.employee_name}</Typography>
-                <Typography variant="body2">Type: {request.request_type_display || request.request_type}</Typography>
-                <Typography variant="body2">Start Date: {formatDate(request.start_date)}</Typography>
-                <Typography variant="body2">End Date: {formatDate(request.end_date)}</Typography>
-                <Typography variant="body2">Hours: {request.hours_requested}</Typography>
+                <Typography variant="h6" sx={{ color: 'text.primary' }}>{request.employee_name}</Typography>
+                <Typography variant="body2" sx={{ color: 'text.primary' }}>Type: {request.request_type_display || request.request_type}</Typography>
+                <Typography variant="body2" sx={{ color: 'text.primary' }}>Start Date: {formatDate(request.start_date)}</Typography>
+                <Typography variant="body2" sx={{ color: 'text.primary' }}>End Date: {formatDate(request.end_date)}</Typography>
+                <Typography variant="body2" sx={{ color: 'text.primary' }}>Hours: {request.hours_requested}</Typography>
                 <Chip label={`Status: ${request.status}`} color={getStatusColor(request.status)} size="small" />
-                <Typography variant="body2" sx={{ color: theme.palette.primary.main }}>Reason: {request.reason || '-'}</Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>Reason: {request.reason || '-'}</Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
                   {canModifyRequest(request) && (
                     <>
@@ -262,7 +258,7 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
               {showPreviousRequests ? 'Hide Previous Requests' : 'Show Previous Requests'}
             </Button>
           </Box>
-          <TableContainer component={Paper} sx={{ mb: 3 }}>
+          <TableContainer component={Paper} sx={{ mb: 3, backgroundColor: 'background.paper', color: 'text.primary' }}>
             <Table>
               <TableHead>
                 <TableRow>
@@ -295,28 +291,26 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
                         size="small"
                       />
                     </TableCell>
-                    <TableCell sx={{ color: theme.palette.primary.main }}>{request.reason || '-'}</TableCell>
+                    <TableCell sx={{ color: 'text.secondary' }}>{request.reason || '-'}</TableCell>
                     <TableCell>
                       {canModifyRequest(request) && (
                         <>
-                          <Tooltip title="Edit">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleEdit(request)}
-                              color="primary"
-                            >
-                              <EditIcon />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleDelete(request)}
-                              color="error"
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </Tooltip>
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<EditIcon />}
+                            onClick={() => handleEdit(request)}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="contained"
+                            color="secondary"
+                            startIcon={<DeleteIcon />}
+                            onClick={() => handleDelete(request)}
+                          >
+                            Delete
+                          </Button>
                         </>
                       )}
                     </TableCell>

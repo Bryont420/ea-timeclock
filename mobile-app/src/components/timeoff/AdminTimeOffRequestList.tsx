@@ -225,7 +225,7 @@ const AdminTimeOffRequestList: React.FC = () => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" p={3}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
         <CircularProgress />
       </Box>
     );
@@ -261,19 +261,18 @@ const AdminTimeOffRequestList: React.FC = () => {
           sx={{ 
             p: 4, 
             textAlign: 'center',
-            backgroundColor: 'background.paper',
             borderRadius: 2
           }}
         >
-          <Typography variant="h5" gutterBottom color="primary">
+          <Typography variant="h5" gutterBottom>
             No Time Off Requests
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+          <Typography variant="body1" sx={{ mb: 2 }}>
             {showProcessedRequests 
               ? "There are no time off requests in the system."
               : "There are no pending time off requests to review."}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2">
             {showProcessedRequests 
               ? "Time off requests will appear here when employees submit them."
               : "Click 'Show Processed Requests' above to view previous requests."}
@@ -358,7 +357,7 @@ const AdminTimeOffRequestList: React.FC = () => {
           ))}
         </Box>
       ) : (
-        <TableContainer component={Paper}>
+        <TableContainer component={Paper} sx={{ backgroundColor: 'background.paper', color: 'text.primary' }}>
           <Table>
             <TableHead>
               <TableRow>

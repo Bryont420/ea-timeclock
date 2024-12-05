@@ -80,13 +80,15 @@ export const Dashboard: React.FC = () => {
     }
 
     return (
-        <Container maxWidth="sm" sx={{ py: 4 }}>
-            <Typography variant="h5" component="h1" gutterBottom textAlign="center">
+        <Container maxWidth="sm" sx={{ py: 4, color: 'text.primary' }}>
+            <Typography variant="h5" component="h1" gutterBottom textAlign="center" sx={{ color: 'text.primary' }}>
                 Employee Dashboard
             </Typography>
             
-            <EmployeeInfoCard employee={employee} />
-            <QuickActionsPanel />
+            <Container maxWidth="lg" sx={{ color: 'text.primary' }}>
+              <EmployeeInfoCard employee={employee} />
+              <QuickActionsPanel />
+            </Container>
         </Container>
     );
 };

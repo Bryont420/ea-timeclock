@@ -21,29 +21,20 @@ import { Employee } from '../../types/employee';
  */
 const StyledCard = styled(Card)(({ theme }) => ({
     height: '100%',
-    backgroundColor: theme.palette.mode === 'dark' 
-        ? theme.palette.grey[800] 
-        : theme.palette.grey[50],
+    backgroundColor: theme.palette.background.paper,
+    color: theme.palette.text.primary,
     '& .MuiCardContent-root': {
         '& .MuiTypography-root:not(.employee-header)': {
-            backgroundColor: theme.palette.mode === 'dark' 
-                ? 'rgba(255, 255, 255, 0.05)' 
-                : 'rgba(0, 0, 0, 0.03)',
+            backgroundColor: theme.palette.action.hover,
             padding: theme.spacing(1),
             borderRadius: theme.shape.borderRadius,
         }
     },
     '& .MuiChip-root': {
-        backgroundColor: theme.palette.mode === 'dark' 
-            ? theme.palette.grey[700] 
-            : theme.palette.grey[200],
+        backgroundColor: theme.palette.grey[200],
         '&.MuiChip-colorSuccess': {
-            backgroundColor: theme.palette.mode === 'dark' 
-                ? theme.palette.success.dark 
-                : theme.palette.success.light,
-            color: theme.palette.mode === 'dark' 
-                ? theme.palette.success.contrastText 
-                : theme.palette.success.contrastText,
+            backgroundColor: theme.palette.success.light,
+            color: theme.palette.success.contrastText,
         }
     }
 }));

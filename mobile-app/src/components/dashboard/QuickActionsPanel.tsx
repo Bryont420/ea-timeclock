@@ -32,12 +32,12 @@ import { Link } from 'react-router-dom';
  */
 export const QuickActionsPanel: React.FC = () => {
     return (
-        <Card>
+        <Card sx={{ backgroundColor: 'background.paper', color: 'text.primary' }}>
             <CardContent>
                 <Typography variant="h6" gutterBottom>
                     Quick Actions
                 </Typography>
-                <Divider sx={{ mb: 2 }} />
+                <Divider sx={{ mb: 2, backgroundColor: 'text.secondary' }} />
                 <Box sx={{ 
                     display: 'flex', 
                     flexDirection: 'column', 

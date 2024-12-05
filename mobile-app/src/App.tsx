@@ -19,6 +19,8 @@ const TimeOff = lazy(() => import('./pages/TimeOff').then(module => ({ default: 
 const AdminTimeOff = lazy(() => import('./pages/AdminTimeOff').then(module => ({ default: module.AdminTimeOff })));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard').then(module => ({ default: module.AdminDashboard })));
 const AdminTimeEntries = lazy(() => import('./pages/AdminTimeEntries').then(module => ({ default: module.AdminTimeEntries })));
+const PasswordResetRequest = lazy(() => import('./pages/PasswordResetRequest').then(module => ({ default: module.default })));
+const PasswordReset = lazy(() => import('./pages/PasswordReset').then(module => ({ default: module.default })));
 
 // Protected Route component with memoization
 const ProtectedRoute = React.memo(({ children }: { children: React.ReactNode }) => {
@@ -52,6 +54,8 @@ const App = () => {
                     <Routes>
                       <Route path="/" element={<Login />} />
                       <Route path="/login" element={<Navigate to="/" replace />} />
+                      <Route path="/password-reset-request" element={<PasswordResetRequest />} />
+                      <Route path="/reset-password/:token" element={<PasswordReset />} />
                       
                       {/* Employee Routes */}
                       <Route path="/dashboard" element={

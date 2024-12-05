@@ -108,6 +108,16 @@ export const LoginForm: React.FC<LoginFormProps> = memo(({
                     {loading ? 'Signing in...' : 'Sign In'}
                 </Button>
             </Box>
+            <Box sx={{ mt: 2, textAlign: 'center' }}>
+                <Button
+                    component="a"
+                    href="/password-reset-request"
+                    variant="text"
+                    size="small"
+                >
+                    Forgot Password?
+                </Button>
+            </Box>
         </form>
     );
 });

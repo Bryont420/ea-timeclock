@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib import admin
-from .models import Employee, TimeEntry, Note
+from .models import Employee, TimeEntry, Note, PasswordResetToken
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
@@ -191,6 +191,12 @@ class TimeOffRequestAdmin(admin.ModelAdmin):
 
 # Register the TimeOffRequest model with the custom admin class
 admin.site.register(TimeOffRequest, TimeOffRequestAdmin)
+
+class PasswordResetTokenAdmin(admin.ModelAdmin):
+    list_display = ('user', 'token', 'created_at', 'expires_at')
+    search_fields = ('user__username', 'token')
+
+admin.site.register(PasswordResetToken, PasswordResetTokenAdmin)
 
 admin.site.register(Note, NoteAdmin)
 admin.site.register(Employee, EmployeeAdmin)

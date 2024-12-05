@@ -18,6 +18,19 @@ export interface ThemeOption {
       default: string;
       paper: string;
     };
+    text: {
+      primary: string;
+      secondary: string;
+    };
+    success: {
+      light: string;
+      main: string;
+      dark: string;
+      contrastText: string;
+    };
+    action: {
+      hover: string;
+    };
   };
 }
 
@@ -39,6 +52,19 @@ export const themes: ThemeOption[] = [
           default: '#f5f5f5',
           paper: '#fff',
         },
+        text: {
+          primary: '#000000',
+          secondary: '#757575',
+        },
+        success: {
+          light: '#81c784',
+          main: '#4caf50',
+          dark: '#388e3c',
+          contrastText: '#ffffff',
+        },
+        action: {
+          hover: 'rgba(0, 0, 0, 0.08)',
+        },
       },
     },
     {
@@ -55,6 +81,19 @@ export const themes: ThemeOption[] = [
         background: {
           default: '#303030',
           paper: '#424242',
+        },
+        text: {
+          primary: '#ffffff',
+          secondary: '#bdbdbd',
+        },
+        success: {
+          light: '#66bb6a',
+          main: '#43a047',
+          dark: '#2e7d32',
+          contrastText: '#ffffff',
+        },
+        action: {
+          hover: 'rgba(255, 255, 255, 0.08)',
         },
       },
     },
@@ -73,6 +112,19 @@ export const themes: ThemeOption[] = [
           default: '#f1f8e9',
           paper: '#ffffff',
         },
+        text: {
+          primary: '#000000',
+          secondary: '#757575',
+        },
+        success: {
+          light: '#81c784',
+          main: '#4caf50',
+          dark: '#388e3c',
+          contrastText: '#ffffff',
+        },
+        action: {
+          hover: 'rgba(0, 0, 0, 0.08)',
+        },
       },
     },
     {
@@ -89,6 +141,19 @@ export const themes: ThemeOption[] = [
         background: {
           default: '#263238',
           paper: '#37474f',
+        },
+        text: {
+          primary: '#ffffff',
+          secondary: '#bdbdbd',
+        },
+        success: {
+          light: '#66bb6a',
+          main: '#43a047',
+          dark: '#2e7d32',
+          contrastText: '#ffffff',
+        },
+        action: {
+          hover: 'rgba(255, 255, 255, 0.08)',
         },
       },
     },
@@ -107,6 +172,19 @@ export const themes: ThemeOption[] = [
           default: '#fff3e0',
           paper: '#ffffff',
         },
+        text: {
+          primary: '#000000',
+          secondary: '#757575',
+        },
+        success: {
+          light: '#81c784',
+          main: '#4caf50',
+          dark: '#388e3c',
+          contrastText: '#ffffff',
+        },
+        action: {
+          hover: 'rgba(0, 0, 0, 0.08)',
+        },
       },
     },
     {
@@ -123,6 +201,19 @@ export const themes: ThemeOption[] = [
         background: {
           default: '#303030',
           paper: '#424242',
+        },
+        text: {
+          primary: '#ffffff',
+          secondary: '#bdbdbd',
+        },
+        success: {
+          light: '#66bb6a',
+          main: '#43a047',
+          dark: '#2e7d32',
+          contrastText: '#ffffff',
+        },
+        action: {
+          hover: 'rgba(255, 255, 255, 0.08)',
         },
       },
     },
@@ -142,6 +233,19 @@ export const themes: ThemeOption[] = [
           default: '#1b5e20',
           paper: '#004A00',
         },
+        text: {
+          primary: '#ffffff',
+          secondary: '#bdbdbd',
+        },
+        success: {
+          light: '#66bb6a',
+          main: '#43a047',
+          dark: '#2e7d32',
+          contrastText: '#ffffff',
+        },
+        action: {
+          hover: 'rgba(255, 255, 255, 0.08)',
+        },
       },
     },
     {
@@ -158,6 +262,19 @@ export const themes: ThemeOption[] = [
         background: {
           default: '#fff8e1',
           paper: '#ffffff',
+        },
+        text: {
+          primary: '#000000',
+          secondary: '#757575',
+        },
+        success: {
+          light: '#81c784',
+          main: '#4caf50',
+          dark: '#388e3c',
+          contrastText: '#ffffff',
+        },
+        action: {
+          hover: 'rgba(0, 0, 0, 0.08)',
         },
       },
     },
@@ -176,6 +293,19 @@ export const themes: ThemeOption[] = [
           default: '#f3e5f5',
           paper: '#ffffff',
         },
+        text: {
+          primary: '#000000',
+          secondary: '#757575',
+        },
+        success: {
+          light: '#81c784',
+          main: '#4caf50',
+          dark: '#388e3c',
+          contrastText: '#ffffff',
+        },
+        action: {
+          hover: 'rgba(0, 0, 0, 0.08)',
+        },
       },
     },
     {
@@ -192,6 +322,19 @@ export const themes: ThemeOption[] = [
         background: {
           default: '#0d47a1',
           paper: '#1e88e5',
+        },
+        text: {
+          primary: '#ffffff',
+          secondary: '#bdbdbd',
+        },
+        success: {
+          light: '#66bb6a',
+          main: '#43a047',
+          dark: '#2e7d32',
+          contrastText: '#ffffff',
+        },
+        action: {
+          hover: 'rgba(255, 255, 255, 0.08)',
         },
       },
     },
@@ -210,6 +353,19 @@ export const themes: ThemeOption[] = [
           default: '#fce4ec',
           paper: '#ffffff',
         },
+        text: {
+          primary: '#000000',
+          secondary: '#757575',
+        },
+        success: {
+          light: '#81c784',
+          main: '#4caf50',
+          dark: '#388e3c',
+          contrastText: '#ffffff',
+        },
+        action: {
+          hover: 'rgba(0, 0, 0, 0.08)',
+        },
       },
     },
     {
@@ -226,6 +382,19 @@ export const themes: ThemeOption[] = [
         background: {
           default: '#4a0072',
           paper: '#6a1b9a',
+        },
+        text: {
+          primary: '#ffffff',
+          secondary: '#bdbdbd',
+        },
+        success: {
+          light: '#66bb6a',
+          main: '#43a047',
+          dark: '#2e7d32',
+          contrastText: '#ffffff',
+        },
+        action: {
+          hover: 'rgba(255, 255, 255, 0.08)',
         },
       },
     },
@@ -337,44 +506,58 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         },
         styleOverrides: {
           root: {
+            // Specific styles for named headers
             '&.app-header, &.login-header, &.employee-header': {
-              backgroundColor: 'transparent'
-            }
-          },
-          h1: {
+              backgroundColor: 'transparent',
+            },
+            // Default style for other headers
             '&:not(.login-header):not(.app-header):not(.employee-header)': {
-              backgroundColor: applyTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(48, 48, 48, 0.6)',
+              backgroundColor: applyTheme.palette.background.default,
+              color: applyTheme.palette.text.primary,
               padding: '8px 16px',
               borderRadius: '4px',
-            }
+            },
+          },
+          // Override for h1-h6 styles
+          h1: {
+            '&:not(.login-header):not(.app-header):not(.employee-header)': {
+              backgroundColor: applyTheme.palette.background.default,
+              color: applyTheme.palette.text.primary,
+              padding: '8px 16px',
+              borderRadius: '4px',
+            },
           },
           h2: {
             '&:not(.login-header):not(.app-header):not(.employee-header)': {
-              backgroundColor: applyTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(48, 48, 48, 0.6)',
+              backgroundColor: applyTheme.palette.background.default,
+              color: applyTheme.palette.text.primary,
               padding: '8px 16px',
               borderRadius: '4px',
-            }
+            },
           },
           h3: {
             '&:not(.login-header):not(.app-header):not(.employee-header)': {
-              backgroundColor: applyTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(48, 48, 48, 0.6)',
+              backgroundColor: applyTheme.palette.background.default,
+              color: applyTheme.palette.text.primary,
               padding: '8px 16px',
               borderRadius: '4px',
-            }
+            },
           },
           h4: {
             '&:not(.login-header):not(.app-header):not(.employee-header)': {
-              backgroundColor: applyTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(48, 48, 48, 0.6)',
+              backgroundColor: applyTheme.palette.background.default,
+              color: applyTheme.palette.text.primary,
               padding: '8px 16px',
               borderRadius: '4px',
-            }
+            },
           },
           h5: {
             '&:not(.login-header):not(.app-header):not(.employee-header)': {
-              backgroundColor: applyTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(48, 48, 48, 0.6)',
+              backgroundColor: applyTheme.palette.background.default,
+              color: applyTheme.palette.text.primary,
               padding: '8px 16px',
               borderRadius: '4px',
-            }
+            },
           },
         },
       },
