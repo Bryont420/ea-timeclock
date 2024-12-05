@@ -18,6 +18,7 @@ from .views.base_views import (
 from .views.auth_views import logout_view
 from .views import theme_views
 from .views.email_update_view import EmailUpdateView
+from .views.password_reset import request_password_reset, reset_password
 
 router = routers.DefaultRouter()
 router.register(r'time-off-requests', TimeOffRequestViewSet, basename='time-off-request')
@@ -39,4 +40,6 @@ urlpatterns = [
     path('user/preferences/theme/', theme_views.get_theme_preference, name='get_theme_preference'),
     path('user/preferences/theme/update/', theme_views.update_theme_preference, name='update_theme_preference'),
     path('employee/email/update/', EmailUpdateView.as_view(), name='email-update'),
+    path('password-reset/request/', request_password_reset, name='request_password_reset'),
+    path('password-reset/reset/<str:token>/', reset_password, name='reset_password'),
 ] + router.urls

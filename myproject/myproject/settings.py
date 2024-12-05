@@ -35,6 +35,7 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.50.96', 'timeclock', '192.168.0.107', '38.40.84.126', 'ea-time-clock.duckdns.org']
 
+FRONTEND_URL = 'https://ea-time-clock.duckdns.org:1832/'
 
 # Application definition
 

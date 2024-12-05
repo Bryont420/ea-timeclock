@@ -61,12 +61,12 @@ export const EmployeeInfoCard: React.FC<EmployeeInfoCardProps> = ({ employee }) 
     };
 
     return (
-        <Card sx={{ mb: 2 }}>
+        <Card sx={{ mb: 2, color: 'text.primary' }}>
             <CardContent>
                 <Typography variant="h6" gutterBottom>
                     Employee Information
                 </Typography>
-                <Divider sx={{ mb: 2 }} />
+                <Divider sx={{ mb: 2, backgroundColor: 'divider' }} />
                 <Typography variant="body1" gutterBottom>
                     <strong>Name:</strong> {employee.first_name} {employee.last_name}
                 </Typography>
@@ -89,16 +89,16 @@ export const EmployeeInfoCard: React.FC<EmployeeInfoCardProps> = ({ employee }) 
                         email
                     )}
                     {isEditing ? (
-                        <Button onClick={saveEmail} sx={{ ml: 2 }}>
+                        <Button onClick={saveEmail} sx={{ ml: 2 }} color="primary">
                             Save
                         </Button>
                     ) : (
-                        <Button onClick={() => setIsEditing(true)} sx={{ ml: 2 }}>
+                        <Button onClick={() => setIsEditing(true)} sx={{ ml: 2 }} color="primary">
                             Edit
                         </Button>
                     )}
                     {isEditing && (
-                        <Button onClick={() => setIsEditing(false)} sx={{ ml: 2 }}>
+                        <Button onClick={() => setIsEditing(false)} sx={{ ml: 2 }} color="secondary">
                             Cancel
                         </Button>
                     )}

@@ -1,11 +1,11 @@
 import React, { useState, useEffect, memo } from 'react';
-import { Container, Box, Typography, Paper } from '@mui/material';
+import { Container, Typography, Paper, Card, CardContent } from '@mui/material';
 import { getTimeEntries, TimeEntriesResponse, TimeEntry } from '../services/employee';
 import { useAuth } from '../contexts/AuthContext';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { ErrorAlert } from '../components/common/ErrorAlert';
 import TimeEntriesHeader from '../components/timeentries/TimeEntriesHeader';
-import WeeklyTimeTable from '../components/timeentries/WeeklyTimeTable';
+import { format, parseISO } from 'date-fns';
 
 interface WeeklyEntries {
   weekStart: Date;
@@ -100,7 +100,6 @@ export const TimeEntries: React.FC = memo(() => {
       .sort((a, b) => b.weekStart.getTime() - a.weekStart.getTime());
   };
 
-  const MemoizedWeeklyTimeTable = React.memo(WeeklyTimeTable);
   const MemoizedTimeEntriesHeader = React.memo(TimeEntriesHeader);
 
   if (loading) {
@@ -113,17 +112,16 @@ export const TimeEntries: React.FC = memo(() => {
 
   if (!timeEntries || !timeEntries.entries || timeEntries.entries.length === 0) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Container maxWidth="xl" sx={{ color: 'text.primary', py: 4 }}>
         <Paper 
           elevation={2} 
           sx={{ 
             p: 4, 
             textAlign: 'center',
-            backgroundColor: 'background.paper',
             borderRadius: 2
           }}
         >
-          <Typography variant="h5" gutterBottom color="primary">
+          <Typography variant="h5" gutterBottom color="text.primary">
             No Time Entries Found
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
@@ -138,19 +136,33 @@ export const TimeEntries: React.FC = memo(() => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="xl" sx={{ color: 'text.primary', py: 4 }}>
+      <Typography variant="h5" component="h1" gutterBottom>
+        Time Entries
+      </Typography>
       {weeklyEntries.map((week) => (
-        <Box key={week.weekStart.toISOString()} sx={{ mb: 4 }}>
-          <MemoizedTimeEntriesHeader 
-            weekStart={week.weekStart}
-            weekTotalHours={week.totalHours}
-          />
-          <MemoizedWeeklyTimeTable 
-            entries={week.entries}
-            weekStart={week.weekStart}
-            totalHours={week.totalHours}
-          />
-        </Box>
+        <Card key={week.weekStart.toISOString()} sx={{ mb: 4, boxShadow: 'none' }}>
+          <CardContent>
+            <MemoizedTimeEntriesHeader 
+              weekStart={week.weekStart}
+              weekTotalHours={week.totalHours}
+            />
+            {week.entries.map((entry) => (
+              <Card key={entry.id} sx={{ mb: 2 }}>
+                <CardContent>
+                  <Typography variant="h6">Date: {format(parseISO(entry.clock_in_time), 'EEE MM/dd/yy')}</Typography>
+                  <Typography variant="body2">Clock In: {format(parseISO(entry.clock_in_time), 'hh:mm a')}</Typography>
+                  <Typography variant="body2">Clock Out: {entry.clock_out_time ? format(parseISO(entry.clock_out_time), 'hh:mm a') : 'N/A'}</Typography>
+                  <Typography variant="body2">Hours: {entry.hours_worked}H</Typography>
+                  <Typography variant="body2">Notes:</Typography>
+                  {entry.notes.map((note, index) => (
+                    <Typography key={index} variant="body2">- {note.note_text} ({note.created_by.username}, {format(parseISO(note.created_at), 'MM/dd/yyyy')})</Typography>
+                  ))}
+                </CardContent>
+              </Card>
+            ))}
+          </CardContent>
+        </Card>
       ))}
     </Container>
   );

@@ -63,12 +63,12 @@ export const TimeEntriesTable: React.FC<TimeEntriesTableProps> = ({
     const isMobile = useMediaQuery('(max-width:600px)');
 
     return (
-        <Box>
+        <Box sx={{ mb: 3 }}>
             {isMobile ? (
                 <Box>
                     {timeEntries.map((entry) => (
                         <Card key={entry.id} sx={{ mb: 2 }}>
-                            <CardContent>
+                            <CardContent sx={{ backgroundColor: 'background.paper', color: 'text.primary' }}>
                                 <Typography variant="h6">{entry.employee_name}</Typography>
                                 <Typography variant="body2">
                                     Date: {format(parseISO(entry.entry_date), 'EEE MM/dd/yy')}
@@ -79,14 +79,12 @@ export const TimeEntriesTable: React.FC<TimeEntriesTableProps> = ({
                                 <Typography variant="body2">
                                     Clock Out: {entry.clock_out_time_formatted || (
                                         <Chip 
-                                            label="Clocked In" 
-                                            color="success" 
-                                            size="small"
+                                            label="Clocked In"
                                             sx={{ 
-                                                fontWeight: 'bold',
-                                                backgroundColor: '#4caf50',
-                                                color: 'white'
+                                                backgroundColor: (theme) => theme.palette.success.main, 
+                                                color: (theme) => theme.palette.success.contrastText 
                                             }}
+                                            size="small"
                                         />
                                     )}
                                 </Typography>
@@ -98,8 +96,8 @@ export const TimeEntriesTable: React.FC<TimeEntriesTableProps> = ({
                                         <div key={note.id}>
                                             <small>{note.note_text}</small>
                                             <br />
-                                            <small style={{ color: 'gray' }}>
-                                                - {note.created_by} ({new Date(note.created_at).toLocaleDateString()})
+                                            <small style={{ color: 'text.secondary' }}>
+                                                {note.created_by} - {new Date(note.created_at).toLocaleDateString()}
                                             </small>
                                         </div>
                                     ))}
@@ -121,6 +119,8 @@ export const TimeEntriesTable: React.FC<TimeEntriesTableProps> = ({
                     component={Paper}
                     sx={{
                         overflowX: 'auto',
+                        backgroundColor: 'background.paper',
+                        boxShadow: 'none',
                         '& .MuiTable-root': {
                             minWidth: 650,
                         },
@@ -140,8 +140,8 @@ export const TimeEntriesTable: React.FC<TimeEntriesTableProps> = ({
                     <Table size="small">
                         <TableHead>
                             <TableRow>
-                                <TableCell>Employee</TableCell>
                                 <TableCell>Date</TableCell>
+                                <TableCell>Employee</TableCell>
                                 <TableCell>Clock In</TableCell>
                                 <TableCell>Clock Out</TableCell>
                                 <TableCell className="hide-on-mobile">Hours</TableCell>
@@ -152,33 +152,27 @@ export const TimeEntriesTable: React.FC<TimeEntriesTableProps> = ({
                         <TableBody>
                             {timeEntries.map((entry) => (
                                 <TableRow key={entry.id}>
+                                    <TableCell>{format(parseISO(entry.entry_date), 'EEE MM/dd/yy')}</TableCell>
                                     <TableCell>{entry.employee_name}</TableCell>
-                                    <TableCell>
-                                        {format(parseISO(entry.entry_date), 'EEE MM/dd/yy')}
-                                    </TableCell>
                                     <TableCell>{entry.clock_in_time_formatted}</TableCell>
-                                    <TableCell>
-                                        {entry.clock_out_time_formatted || (
-                                            <Chip 
-                                                label="Clocked In" 
-                                                color="success" 
-                                                size="small"
-                                                sx={{ 
-                                                    fontWeight: 'bold',
-                                                    backgroundColor: '#4caf50',
-                                                    color: 'white'
-                                                }}
-                                            />
-                                        )}
-                                    </TableCell>
+                                    <TableCell>{entry.clock_out_time_formatted || (
+                                        <Chip 
+                                            label="Clocked In"
+                                            sx={{ 
+                                                backgroundColor: (theme) => theme.palette.success.main, 
+                                                color: (theme) => theme.palette.success.contrastText 
+                                            }}
+                                            size="small"
+                                        />
+                                    )}</TableCell>
                                     <TableCell className="hide-on-mobile">{entry.hours_worked_display}</TableCell>
                                     <TableCell className="notes-cell hide-on-mobile">
                                         {entry.notes_display?.map((note) => (
                                             <div key={note.id}>
                                                 <small>{note.note_text}</small>
                                                 <br />
-                                                <small style={{ color: 'gray' }}>
-                                                    - {note.created_by} ({new Date(note.created_at).toLocaleDateString()})
+                                                <small style={{ color: 'text.secondary' }}>
+                                                    {note.created_by} - {new Date(note.created_at).toLocaleDateString()}
                                                 </small>
                                             </div>
                                         ))}

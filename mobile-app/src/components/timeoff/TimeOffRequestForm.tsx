@@ -184,11 +184,11 @@ export const TimeOffRequestForm: React.FC<{
   };
 
   const formContent = (
-    <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+    <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2, backgroundColor: 'background.paper', color: 'text.primary' }}>
       {error && (
         <Alert 
           severity="error" 
-          sx={{ mb: 2 }}
+          sx={{ mt: 2, backgroundColor: 'error.main', color: 'error.contrastText' }}
           onClose={() => setError('')}
         >
           {error}
@@ -198,7 +198,7 @@ export const TimeOffRequestForm: React.FC<{
       {success && !error && (
         <Alert 
           severity="success" 
-          sx={{ mb: 2 }}
+          sx={{ mt: 2, backgroundColor: 'success.main', color: 'success.contrastText' }}
           onClose={() => setSuccess(false)}
         >
           Time off request submitted successfully!
@@ -424,8 +424,8 @@ export const TimeOffRequestForm: React.FC<{
   return (
     <>
       {isDialog ? (
-        <Dialog open onClose={onClose} maxWidth="sm" fullWidth>
-          <DialogTitle>
+        <Dialog open={isDialog} onClose={onClose} fullWidth maxWidth="sm" sx={{ backgroundColor: 'background.paper', color: 'text.primary' }}>
+          <DialogTitle sx={{ backgroundColor: 'background.paper', color: 'text.primary' }}>
             {initialRequest ? 'Edit Time Off Request' : 'New Time Off Request'}
           </DialogTitle>
           <DialogContent>
@@ -441,7 +441,7 @@ export const TimeOffRequestForm: React.FC<{
         autoHideDuration={6000}
         onClose={() => setSuccess(false)}
       >
-        <Alert severity="success" sx={{ width: '100%' }}>
+        <Alert onClose={() => setSuccess(false)} severity="success" sx={{ width: '100%', backgroundColor: 'success.main', color: 'success.contrastText' }}>
           Time off request submitted successfully!
         </Alert>
       </Snackbar>

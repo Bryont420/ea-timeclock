@@ -44,7 +44,7 @@ const ThemeSelector: React.FC = () => {
                   sx={{
                     width: 20,
                     height: 20,
-                    backgroundColor: theme.palette.secondary.main,
+                    backgroundColor: theme.palette.background.default,
                     borderRadius: '50%',
                     marginRight: 1,
                   }}

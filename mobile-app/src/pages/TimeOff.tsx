@@ -21,7 +21,7 @@ export const TimeOff: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ p: 2, color: 'text.primary' }}>
       <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
         <Button
           variant="contained"
@@ -40,6 +40,7 @@ export const TimeOff: React.FC = () => {
         onClose={handleClose}
         maxWidth="md"
         fullWidth
+        sx={{ color: 'text.primary' }}
       >
         <TimeOffRequestForm
           onSubmit={handleSubmitSuccess}

@@ -55,7 +55,7 @@ export const TimeEntriesFilter: React.FC<TimeEntriesFilterProps> = ({
     onApplyFilter,
 }) => {
     return (
-        <Paper sx={{ p: 2, mb: 3 }}>
+        <Paper sx={{ p: 2, mb: 3, backgroundColor: 'background.paper', color: 'text.primary' }}>
             <Box sx={{ 
                 display: 'flex', 
                 flexDirection: { xs: 'column', sm: 'row' },
@@ -66,7 +66,9 @@ export const TimeEntriesFilter: React.FC<TimeEntriesFilterProps> = ({
                 },
                 '& .MuiButton-root': {
                     width: { xs: '100%', sm: 'auto' },
-                    mt: { xs: 1, sm: 0 }
+                    mt: { xs: 1, sm: 0 },
+                    backgroundColor: 'primary.main',
+                    color: 'primary.contrastText'
                 }
             }}>
                 <FormControl>

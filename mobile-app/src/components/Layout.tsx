@@ -96,13 +96,14 @@ export const Layout = React.memo<LayoutProps>(({ children }) => {
 
     return (
         <Box sx={{ pb: 7 }}>
-            <AppBar position="static">
+            <AppBar position="static" sx={{ backgroundColor: 'background.paper' }}>
                 <Toolbar>
                     <ThemeSelector />
                     <Typography 
                         variant="h6" 
                         component="div" 
-                        sx={{ flexGrow: 1, textAlign: 'center', fontWeight: 'bold' }}
+                        className="app-header"
+                        sx={{ flexGrow: 1, textAlign: 'center', fontWeight: 'bold', color: 'text.primary' }}
                     >
                         {user?.is_staff ? 'Admin Dashboard' : 'Employee Dashboard'}
                     </Typography>

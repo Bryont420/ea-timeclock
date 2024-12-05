@@ -321,3 +321,17 @@ class TimeOffRequest(models.Model):
         if self.is_partial_day:
             return f"{self.employee} - {self.get_request_type_display()} ({self.start_date} {self.start_time}-{self.end_time})"
         return f"{self.employee} - {self.get_request_type_display()} ({self.start_date} to {self.end_date})"
+
+
+class PasswordResetToken(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.CharField(max_length=64, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    def is_expired(self):
+        return timezone.now() > self.expires_at
+
+    class Meta:
+        verbose_name = "Password Reset Token"
+        verbose_name_plural = "Password Reset Tokens"

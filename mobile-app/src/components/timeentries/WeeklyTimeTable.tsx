@@ -31,8 +31,9 @@ import { format, parseISO } from 'date-fns';
  */
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
     padding: '10px',
-    border: '1px solid black',
+    border: `1px solid ${theme.palette.divider}`,
     whiteSpace: 'nowrap',
+    color: theme.palette.text.primary,
     [theme.breakpoints.down('sm')]: {
         padding: '8px',
         fontSize: '0.875rem',
@@ -44,7 +45,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
  */
 const StyledTableHeaderCell = styled(TableCell)(({ theme }) => ({
     padding: '10px',
-    border: '1px solid black',
+    border: `1px solid ${theme.palette.divider}`,
     fontWeight: 'bold',
     backgroundColor: theme.palette.primary.main,
     color: theme.palette.primary.contrastText,
@@ -107,7 +108,7 @@ export const WeeklyTimeTable: React.FC<WeeklyTimeTableProps> = memo(({
     const theme = useTheme();
 
     return (
-        <Box>
+        <Box sx={{ mb: 3 }}>
             {isMobile ? (
                 <Box>
                     {entries.map((entry) => (
@@ -119,7 +120,7 @@ export const WeeklyTimeTable: React.FC<WeeklyTimeTableProps> = memo(({
                                 <Typography variant="body2">Hours: {entry.hours_worked_display}</Typography>
                                 <Typography variant="body2">Notes:</Typography>
                                 {entry.notes?.map((note, index) => (
-                                    <Typography key={index} variant="body2" sx={{ ml: 2, color: theme.palette.primary.main }}>
+                                    <Typography key={index} variant="body2" sx={{ ml: 2, color: theme.palette.text.secondary }}>
                                         - {note.note_text} ({note.created_by.username}, {format(parseISO(note.created_at), 'MM/dd/yyyy')})
                                     </Typography>
                                 ))}
@@ -128,7 +129,7 @@ export const WeeklyTimeTable: React.FC<WeeklyTimeTableProps> = memo(({
                     ))}
                 </Box>
             ) : (
-                <TableContainer component={Paper} sx={{ mb: 3, overflowX: 'auto' }}>
+                <TableContainer component={Paper} sx={{ boxShadow: 'none' }}>
                     <Table size="small">
                         <TableHead>
                             <TableRow>
@@ -151,7 +152,7 @@ export const WeeklyTimeTable: React.FC<WeeklyTimeTableProps> = memo(({
                                             <div key={index}>
                                                 <small>{note.note_text}</small>
                                                 <br />
-                                                <small style={{ color: theme.palette.primary.main }}>
+                                                <small style={{ color: theme.palette.text.secondary }}>
                                                     - {note.created_by.username} ({format(parseISO(note.created_at), 'MM/dd/yyyy')})
                                                 </small>
                                             </div>
