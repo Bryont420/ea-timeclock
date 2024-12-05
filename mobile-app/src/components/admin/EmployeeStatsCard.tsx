@@ -31,9 +31,13 @@ const StyledCard = styled(Card)(({ theme }) => ({
         }
     },
     '& .MuiChip-root': {
-        backgroundColor: theme.palette.grey[200],
+        color: theme.palette.secondary.main,
         '&.MuiChip-colorSuccess': {
             backgroundColor: theme.palette.success.light,
+            color: theme.palette.success.contrastText,
+        },
+        '&.MuiChip-colorPrimary': {
+            backgroundColor: theme.palette.secondary.main,
             color: theme.palette.success.contrastText,
         }
     }
@@ -82,12 +86,13 @@ export const EmployeeStatsCard: React.FC<EmployeeStatsCardProps> = memo(({ emplo
                     }}>
                         <Chip
                             label={employee.clocked_status}
-                            color={employee.clocked_status === 'Clocked In' ? 'success' : 'default'}
+                            color={employee.clocked_status === 'Clocked In' ? 'success' : 'primary'}
                             size="small"
                         />
                         <Chip
                             label={`${employee.years_employed} years`}
                             variant="outlined"
+                            color="secondary"
                             size="small"
                         />
                     </Box>
