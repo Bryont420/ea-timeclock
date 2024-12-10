@@ -26,9 +26,9 @@ export interface UserData {
 export const clearAllUserData = () => {
     try {
         // Clear auth tokens
-        localStorage.removeItem('token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('user');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('refresh_token');
+        sessionStorage.removeItem('user');
         
         // Clear any cached data
         sessionStorage.clear();
@@ -60,8 +60,8 @@ export const login = async (username: string, password: string): Promise<LoginRe
         const { access, refresh, ...userData } = response.data;
 
         // Store tokens
-        localStorage.setItem('token', access);
-        localStorage.setItem('refresh_token', refresh);
+        sessionStorage.setItem('token', access);
+        sessionStorage.setItem('refresh_token', refresh);
 
         // Store user data
         const userDataToStore: UserData = {
@@ -73,7 +73,7 @@ export const login = async (username: string, password: string): Promise<LoginRe
             force_password_change: userData.force_password_change,
             employee: !userData.is_staff // If not staff, assume they're an employee
         };
-        localStorage.setItem('user', JSON.stringify(userDataToStore));
+        sessionStorage.setItem('user', JSON.stringify(userDataToStore));
 
         // Update axios instance authorization header
         axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
@@ -96,7 +96,7 @@ export const login = async (username: string, password: string): Promise<LoginRe
 
 export const logout = async (): Promise<void> => {
     try {
-        const refreshToken = localStorage.getItem('refresh_token');
+        const refreshToken = sessionStorage.getItem('refresh_token');
         
         if (refreshToken) {
             await axiosInstance.post(API_ENDPOINTS.AUTH.LOGOUT, { refresh_token: refreshToken });
@@ -124,7 +124,7 @@ export const refreshAuthToken = async (): Promise<string> => {
             throw new Error('Invalid response from refresh token endpoint');
         }
 
-        localStorage.setItem('token', response.data.access);
+        sessionStorage.setItem('token', response.data.access);
         return response.data.access;
     } catch (error) {
         clearAllUserData();
@@ -133,15 +133,15 @@ export const refreshAuthToken = async (): Promise<string> => {
 };
 
 export const getToken = (): string | null => {
-    return localStorage.getItem('token');
+    return sessionStorage.getItem('token');
 };
 
 export const getRefreshToken = (): string | null => {
-    return localStorage.getItem('refresh_token');
+    return sessionStorage.getItem('refresh_token');
 };
 
 export const getUserData = (): UserData | null => {
-    const userData = localStorage.getItem('user');
+    const userData = sessionStorage.getItem('user');
     return userData ? JSON.parse(userData) : null;
 };
 

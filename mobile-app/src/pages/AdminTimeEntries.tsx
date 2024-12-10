@@ -112,7 +112,7 @@ export const AdminTimeEntries: React.FC = () => {
             });
 
             const response = await axios.get(`${API_ENDPOINTS.ADMIN.TIME_ENTRIES}?${params}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
             setTimeEntries(sortTimeEntries(response.data));
         } catch (err) {
@@ -124,7 +124,7 @@ export const AdminTimeEntries: React.FC = () => {
     const fetchEmployees = async () => {
         try {
             const response = await axios.get(API_ENDPOINTS.ADMIN.EMPLOYEES, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
             setEmployees(response.data);
         } catch (err) {
@@ -143,7 +143,7 @@ export const AdminTimeEntries: React.FC = () => {
             }
 
             const response = await axios.get(`${API_ENDPOINTS.ADMIN.EMPLOYEES}${employee.id}/`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             });
             return response.data.clocked_in;
         } catch (err) {
@@ -166,7 +166,7 @@ export const AdminTimeEntries: React.FC = () => {
                 { clocked_in: isClocked },
                 {
                     headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`,
+                        Authorization: `Bearer ${sessionStorage.getItem('token')}`,
                         'Content-Type': 'application/json',
                     }
                 }
@@ -235,7 +235,7 @@ export const AdminTimeEntries: React.FC = () => {
         if (window.confirm('Are you sure you want to delete this time entry?')) {
             try {
                 await axios.delete(`${API_ENDPOINTS.ADMIN.TIME_ENTRIES}${entry.id}/`, {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
                 });
                 fetchTimeEntries();
             } catch (err) {
@@ -262,7 +262,7 @@ export const AdminTimeEntries: React.FC = () => {
                 await axios.put(
                     `${API_ENDPOINTS.ADMIN.TIME_ENTRIES}${selectedEntry.id}/`,
                     payload,
-                    { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+                    { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } }
                 );
             } else {
                 // For creating new entry
@@ -279,7 +279,7 @@ export const AdminTimeEntries: React.FC = () => {
                 await axios.post(
                     API_ENDPOINTS.ADMIN.TIME_ENTRIES,
                     payload,
-                    { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+                    { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } }
                 );
             }
 

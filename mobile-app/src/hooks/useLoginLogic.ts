@@ -47,7 +47,7 @@ export const useLoginLogic = () => {
             
             // Update context and local storage
             setUser(userData);
-            localStorage.setItem('user', JSON.stringify(userData));
+            sessionStorage.setItem('user', JSON.stringify(userData));
             
             // Set authentication state after user data is set
             setIsAuthenticated(true);

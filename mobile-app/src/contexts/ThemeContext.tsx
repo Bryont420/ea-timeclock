@@ -423,7 +423,7 @@ interface ThemeProviderProps {
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const { isAuthenticated, user } = useAuth();
   const [currentTheme, setCurrentTheme] = useState<ThemeOption>(() => {
-    const savedThemeId = localStorage.getItem('themeId');
+    const savedThemeId = sessionStorage.getItem('themeId');
     return themes.find(theme => theme.id === savedThemeId) || themes[0];
   });
   const [hoverTheme, setHoverTheme] = useState<ThemeOption | null>(null);
@@ -434,7 +434,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     const selectedTheme = themes.find(theme => theme.id === themeId);
     if (selectedTheme) {
       setCurrentTheme(selectedTheme);
-      localStorage.setItem('themeId', themeId);
+      sessionStorage.setItem('themeId', themeId);
 
       try {
         // Save the selected theme to the user's profile
@@ -471,7 +471,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           const userTheme = themes.find(theme => theme.id === userThemeId);
           if (userTheme) {
             setCurrentTheme(userTheme);
-            localStorage.setItem('themeId', userThemeId);
+            sessionStorage.setItem('themeId', userThemeId);
           }
         } catch (error) {
           // Silently handle error - will use default theme
@@ -507,7 +507,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         styleOverrides: {
           root: {
             // Specific styles for named headers
-            '&.app-header, &.login-header, &.employee-header': {
+            '&.app-header, &.login-header, &.employee-header, &.MuiFormControlLabel-label': {
               backgroundColor: 'transparent',
             },
             // Specific styles for password criteria
@@ -523,7 +523,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               },
             },
             // Default style for other headers
-            '&:not(.login-header):not(.app-header):not(.employee-header):not(.password-criteria)': {
+            '&:not(.login-header):not(.app-header):not(.employee-header):not(.password-criteria):not(.MuiFormControlLabel-label)': {
               backgroundColor: applyTheme.palette.background.default,
               color: applyTheme.palette.text.primary,
               padding: '8px 16px',

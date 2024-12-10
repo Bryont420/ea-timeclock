@@ -82,7 +82,7 @@ axiosInstance.interceptors.response.use(
                 const { access } = response.data;
 
                 // Store new access token
-                localStorage.setItem('token', access);
+                sessionStorage.setItem('token', access);
 
                 isRefreshing = false;
                 onTokenRefreshed(access);
@@ -93,9 +93,9 @@ axiosInstance.interceptors.response.use(
             } catch (refreshError) {
                 isRefreshing = false;
                 // Clear tokens on refresh failure
-                localStorage.removeItem('token');
-                localStorage.removeItem('refresh_token');
-                localStorage.removeItem('user');
+                sessionStorage.removeItem('token');
+                sessionStorage.removeItem('refresh_token');
+                sessionStorage.removeItem('user');
                 return Promise.reject(new APIError('Invalid username or password', 401));
             }
         }
