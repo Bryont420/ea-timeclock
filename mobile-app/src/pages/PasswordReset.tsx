@@ -17,7 +17,13 @@ const PasswordReset: React.FC = () => {
     number: false,
     symbol: false,
   });
+  const [buttonPositionX, setButtonPositionX] = useState('center');
+  const [flashingKeys, setFlashingKeys] = useState<string[]>([]); // Keys that are flashing
+  const [isFlashingDark, setIsFlashingDark] = useState(false); // Tracks flash state
 
+  const isMobile = /Mobi|Android/i.test(navigator.userAgent); // Check if user is on mobile
+
+  // Update requirements met state based on password input
   useEffect(() => {
     setRequirementsMet({
       minLength: newPassword.length >= 8,
@@ -28,10 +34,68 @@ const PasswordReset: React.FC = () => {
     });
   }, [newPassword]);
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  // Return button to center when all criteria are met
+  useEffect(() => {
+    const allMet = Object.values(requirementsMet).every(Boolean);
+    if (allMet) {
+      setButtonPositionX('center');
+    }
+  }, [requirementsMet]);
+
+  const handleButtonHover = () => {
+    if (!isMobile && !allCriteriaMet()) {
+      runAway();
+      triggerFlashingEffect(); // Trigger flashing text on hover
+    }
+  };
+
+  const handleButtonClick = (event: React.FormEvent) => {
     event.preventDefault();
+    if (!allCriteriaMet()) {
+      if (isMobile) {
+        runAway(); // Only run away on mobile click
+      }
+      triggerFlashingEffect(); // Trigger flashing text
+      return;
+    }
+
+    handleSubmit();
+  };
+
+  const allCriteriaMet = () => {
+    return Object.values(requirementsMet).every(Boolean);
+  };
+
+  const runAway = () => {
+    const randomX = Math.random() * 60; // Horizontal offset
+    setButtonPositionX(`${randomX}%`);
+  };
+
+  const triggerFlashingEffect = () => {
+    const unmetKeys = Object.entries(requirementsMet)
+      .filter(([_, met]) => !met)
+      .map(([key]) => key);
+
+    setFlashingKeys(unmetKeys);
+
+    let flashCount = 0;
+    const flashInterval = setInterval(() => {
+      setIsFlashingDark((prev) => !prev); // Toggle between normal and dark red
+      flashCount++;
+
+      if (flashCount >= 8) {
+        // Stop flashing after 4 full flashes (8 toggles)
+        clearInterval(flashInterval);
+        setFlashingKeys([]);
+        setIsFlashingDark(false);
+      }
+    }, 150); // Toggle every 150ms
+  };
+
+  const handleSubmit = async () => {
     setMessage('');
     setError('');
+    setButtonPositionX('center'); // Return button to center
     try {
       const response = await resetPassword(token!, newPassword);
       setMessage(response.message);
@@ -41,7 +105,22 @@ const PasswordReset: React.FC = () => {
     }
   };
 
-  const allRequirementsMet = Object.values(requirementsMet).every(Boolean);
+  const getCriteriaText = (key: string) => {
+    switch (key) {
+      case 'minLength':
+        return 'At least 8 characters';
+      case 'uppercase':
+        return 'At least 1 uppercase letter';
+      case 'lowercase':
+        return 'At least 1 lowercase letter';
+      case 'number':
+        return 'At least 1 number';
+      case 'symbol':
+        return 'At least 1 symbol';
+      default:
+        return '';
+    }
+  };
 
   return (
     <LoginContainer>
@@ -49,11 +128,14 @@ const PasswordReset: React.FC = () => {
         variant="h5"
         gutterBottom
         className="login-header"
-        sx={{ fontSize: { xs: '4.5vw', sm: '2.5vw', md: '1.5vw' }, textAlign: 'center' }}
+        sx={{
+          fontSize: { xs: '4.5vw', sm: '2.5vw', md: '1.5vw' },
+          textAlign: 'center',
+        }}
       >
         Reset Your Password
       </Typography>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleButtonClick}>
         <TextField
           label="New Password"
           type="password"
@@ -65,57 +147,66 @@ const PasswordReset: React.FC = () => {
         />
         <Card sx={{ mt: 2 }}>
           <CardContent>
-            <Typography
-              variant="body2"
-              sx={{ color: requirementsMet.minLength ? 'green' : 'red' }}
-            >
-              At least 8 characters
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ color: requirementsMet.uppercase ? 'green' : 'red' }}
-            >
-              At least 1 uppercase letter
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ color: requirementsMet.lowercase ? 'green' : 'red' }}
-            >
-              At least 1 lowercase letter
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ color: requirementsMet.number ? 'green' : 'red' }}
-            >
-              At least 1 number
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ color: requirementsMet.symbol ? 'green' : 'red' }}
-            >
-              At least 1 symbol
-            </Typography>
+            {Object.entries(requirementsMet).map(([key, met]) => (
+              <Typography
+                key={key}
+                variant="body2"
+                className="password-criteria"
+                sx={{
+                  color: flashingKeys.includes(key)
+                    ? isFlashingDark
+                      ? '#b71c1c' // Darker red during flash
+                      : '#f44336' // Normal red during flash
+                    : met
+                    ? '#4caf50' // Green for met criteria
+                    : '#f44336', // Normal red for unmet criteria
+                  fontWeight: flashingKeys.includes(key) ? 'bold' : 'normal',
+                  transition: flashingKeys.includes(key)
+                    ? 'none' // Disable transition during flashing
+                    : 'color 0.3s ease, font-weight 0.3s ease', // Smooth transition
+                }}
+              >
+                {getCriteriaText(key)}
+              </Typography>
+            ))}
           </CardContent>
         </Card>
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          fullWidth
-          disabled={!allRequirementsMet}
+        <Box
+          sx={{
+            mt: 4,
+            position: 'relative',
+            height: '100px',
+            width: '100%',
+            overflow: 'hidden', // Prevent button from leaving the container
+          }}
         >
-          Reset Password
-        </Button>
+          <Button
+            type="button"
+            variant="contained"
+            color="primary"
+            size="small"
+            sx={{
+              position: 'absolute',
+              top: '50%', // Always vertically centered
+              left: buttonPositionX === 'center' ? '50%' : buttonPositionX,
+              transform:
+                buttonPositionX === 'center'
+                  ? 'translate(-50%, -50%)'
+                  : 'translateY(-50%)',
+              minWidth: '120px',
+              boxShadow: 'none', // Remove white box
+            }}
+            onMouseEnter={handleButtonHover}
+            onClick={handleButtonClick}
+          >
+            Confirm
+          </Button>
+        </Box>
       </form>
       {message && <Alert severity="success">{message}</Alert>}
       {error && <Alert severity="error">{error}</Alert>}
       <Box sx={{ mt: 2, textAlign: 'center' }}>
-        <Button
-          component="a"
-          href="/login"
-          variant="text"
-          size="small"
-        >
+        <Button component="a" href="/login" variant="text" size="small">
           Back to Login
         </Button>
       </Box>
