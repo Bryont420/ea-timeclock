@@ -8,9 +8,14 @@ export const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
     headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'X-Content-Type-Options': 'nosniff',
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains'
     },
     withCredentials: false,  // Changed to false since we're using JWT tokens
+    timeout: 30000, // 30 second timeout
+    xsrfCookieName: 'XSRF-TOKEN',
+    xsrfHeaderName: 'X-XSRF-TOKEN',
 });
 
 // Add authorization header to all requests

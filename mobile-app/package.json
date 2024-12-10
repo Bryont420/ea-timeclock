@@ -43,6 +43,7 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@types/lodash": "^4.17.13",
     "sharp": "^0.33.5",
     "source-map-explorer": "^2.5.3"
   },

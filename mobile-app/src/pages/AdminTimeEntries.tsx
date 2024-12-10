@@ -11,7 +11,7 @@ import PrintIcon from '@mui/icons-material/Print';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import { useAdmin } from '../contexts/AdminContext';
-import { API_ENDPOINTS } from '../config';
+import { API_ENDPOINTS, API_BASE_URL } from '../config';
 import { generateTimeEntriesPDF } from '../utils/pdfUtils';
 import { TimeEntry, FormData, FilterData } from '../types/timeEntry';
 import { Employee } from '../types/employee';
@@ -19,6 +19,7 @@ import { TimeEntryDialog } from '../components/admin/TimeEntryDialog';
 import { TimeEntriesTable } from '../components/admin/TimeEntriesTable';
 import { TimeEntriesFilter } from '../components/admin/TimeEntriesFilter';
 import { format, parseISO } from 'date-fns';
+import debounce from 'lodash/debounce';
 
 const getWorkWeekDates = () => {
     const today = new Date();
@@ -72,6 +73,28 @@ const MemoizedTimeEntriesTable = memo(TimeEntriesTable);
 const MemoizedTimeEntryDialog = memo(TimeEntryDialog);
 const MemoizedTimeEntriesFilter = memo(TimeEntriesFilter);
 
+const validateFilterData = (data: FilterData): string | null => {
+    if (data.start_date && data.end_date) {
+        const start = new Date(data.start_date);
+        const end = new Date(data.end_date);
+        if (start > end) {
+            return 'Start date must be before end date';
+        }
+        // Limit date range to 3 months for performance
+        const threeMonthsAgo = new Date();
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+        if (start < threeMonthsAgo) {
+            return 'Date range cannot exceed 3 months';
+        }
+    }
+    return null;
+};
+
+const isValidDate = (dateString: string): boolean => {
+    const date = new Date(dateString);
+    return !isNaN(date.getTime());
+};
+
 export const AdminTimeEntries: React.FC = () => {
     const workWeek = getWorkWeekDates();
     const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
@@ -103,29 +126,71 @@ export const AdminTimeEntries: React.FC = () => {
     const { user } = useAuth();
     const { setRefreshTimeEntries } = useAdmin();
 
+    // Create admin-specific axios instance
+    const adminAxios = axios.create({
+        baseURL: API_BASE_URL,
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+        }
+    });
+
     const fetchTimeEntries = useCallback(async () => {
         try {
-            const params = new URLSearchParams({
-                employee_id: appliedFilters.employee_id,
-                start_date: appliedFilters.start_date,
-                end_date: appliedFilters.end_date
-            });
+            const params = new URLSearchParams();
+            
+            // Validate and sanitize input parameters
+            if (appliedFilters.employee_id && /^\d+$/.test(appliedFilters.employee_id)) {
+                params.append('employee_id', appliedFilters.employee_id);
+            }
+            
+            if (appliedFilters.start_date && isValidDate(appliedFilters.start_date)) {
+                params.append('start_date', appliedFilters.start_date);
+            }
+            
+            if (appliedFilters.end_date && isValidDate(appliedFilters.end_date)) {
+                params.append('end_date', appliedFilters.end_date);
+            }
 
-            const response = await axios.get(`${API_ENDPOINTS.ADMIN.TIME_ENTRIES}?${params}`, {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
-            });
+            const response = await adminAxios.get(`${API_ENDPOINTS.ADMIN.TIME_ENTRIES}?${params}`);
+            
+            // Validate response data
+            if (!Array.isArray(response.data)) {
+                throw new Error('Invalid response format');
+            }
+            
             setTimeEntries(sortTimeEntries(response.data));
         } catch (err) {
-            setError('Failed to fetch time entries');
+            const errorMessage = err instanceof Error ? err.message : 'Failed to fetch time entries';
+            setError(errorMessage);
             console.error(err);
         }
     }, [appliedFilters]);
 
+    const debouncedFilterChange = useCallback(
+        debounce((field: keyof FilterData, value: any) => {
+            setFilterData(prev => ({ ...prev, [field]: value }));
+        }, 300),
+        []
+    );
+
+    const handleFilterChange = (field: keyof FilterData, value: any) => {
+        debouncedFilterChange(field, value);
+    };
+
+    const handleApplyFilter = () => {
+        const validationError = validateFilterData(filterData);
+        if (validationError) {
+            setError(validationError);
+            return;
+        }
+        setError(null);
+        setAppliedFilters(filterData);
+    };
+
     const fetchEmployees = async () => {
         try {
-            const response = await axios.get(API_ENDPOINTS.ADMIN.EMPLOYEES, {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
-            });
+            const response = await adminAxios.get(API_ENDPOINTS.ADMIN.EMPLOYEES);
             setEmployees(response.data);
         } catch (err) {
             setError('Failed to fetch employees');
@@ -142,9 +207,7 @@ export const AdminTimeEntries: React.FC = () => {
                 return false;
             }
 
-            const response = await axios.get(`${API_ENDPOINTS.ADMIN.EMPLOYEES}${employee.id}/`, {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
-            });
+            const response = await adminAxios.get(`${API_ENDPOINTS.ADMIN.EMPLOYEES}${employee.id}/`);
             return response.data.clocked_in;
         } catch (err) {
             console.error('Error fetching employee status:', err);
@@ -161,12 +224,11 @@ export const AdminTimeEntries: React.FC = () => {
                 return;
             }
 
-            await axios.patch(
+            await adminAxios.patch(
                 `${API_ENDPOINTS.ADMIN.EMPLOYEES}${employee.id}/`,
                 { clocked_in: isClocked },
                 {
                     headers: {
-                        Authorization: `Bearer ${sessionStorage.getItem('token')}`,
                         'Content-Type': 'application/json',
                     }
                 }
@@ -187,18 +249,6 @@ export const AdminTimeEntries: React.FC = () => {
             setRefreshTimeEntries(fetchTimeEntries);
         }
     }, [setRefreshTimeEntries, fetchTimeEntries]);
-
-    const handleFilterChange = (field: keyof FilterData, value: any) => {
-        setFilterData(prev => ({ ...prev, [field]: value }));
-    };
-
-    const handleApplyFilter = () => {
-        setAppliedFilters(filterData);
-    };
-
-    const handleFormChange = (field: keyof FormData, value: any) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-    };
 
     const handleEdit = (entry: TimeEntry) => {
         // Find the employee by matching the name
@@ -234,9 +284,7 @@ export const AdminTimeEntries: React.FC = () => {
     const handleDelete = async (entry: TimeEntry) => {
         if (window.confirm('Are you sure you want to delete this time entry?')) {
             try {
-                await axios.delete(`${API_ENDPOINTS.ADMIN.TIME_ENTRIES}${entry.id}/`, {
-                    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
-                });
+                await adminAxios.delete(`${API_ENDPOINTS.ADMIN.TIME_ENTRIES}${entry.id}/`);
                 fetchTimeEntries();
             } catch (err) {
                 setError('Failed to delete time entry');
@@ -259,10 +307,9 @@ export const AdminTimeEntries: React.FC = () => {
                     }]
                 };
 
-                await axios.put(
+                await adminAxios.put(
                     `${API_ENDPOINTS.ADMIN.TIME_ENTRIES}${selectedEntry.id}/`,
-                    payload,
-                    { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } }
+                    payload
                 );
             } else {
                 // For creating new entry
@@ -276,10 +323,9 @@ export const AdminTimeEntries: React.FC = () => {
                     }]
                 };
 
-                await axios.post(
+                await adminAxios.post(
                     API_ENDPOINTS.ADMIN.TIME_ENTRIES,
-                    payload,
-                    { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } }
+                    payload
                 );
             }
 
@@ -303,6 +349,10 @@ export const AdminTimeEntries: React.FC = () => {
             setError('Failed to save time entry');
             console.error(err);
         }
+    };
+
+    const handleFormChange = (field: keyof FormData, value: any) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
     };
 
     return (
