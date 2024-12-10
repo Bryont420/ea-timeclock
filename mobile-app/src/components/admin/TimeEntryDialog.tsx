@@ -79,17 +79,22 @@ export const TimeEntryDialog: React.FC<TimeEntryDialogProps> = ({
     employees
 }) => {
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth sx={{ backgroundColor: 'background.paper' }}>
+        <Dialog 
+            open={open} 
+            onClose={onClose} 
+            maxWidth="sm" 
+            fullWidth 
+        >
             <DialogTitle sx={{ backgroundColor: 'background.paper', color: 'text.primary' }}>
                 {selectedEntry ? 'Edit Time Entry' : 'Add Time Entry'}
             </DialogTitle>
-            <DialogContent sx={{ backgroundColor: 'background.paper', color: 'text.primary' }}>
+            <DialogContent sx={{ color: 'text.primary' }}>
                 {error && (
-                    <Alert severity="error" sx={{ mb: 2, backgroundColor: 'error.main', color: 'error.contrastText' }}>
+                    <Alert severity="error" sx={{ mb: 2, color: 'error.contrastText' }}>
                         {error}
                     </Alert>
                 )}
-                <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2, backgroundColor: 'background.paper', color: 'text.primary' }}>
+                <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2, color: 'text.primary' }}>
                     <FormControl fullWidth>
                         <InputLabel>Employee</InputLabel>
                         <Select
@@ -124,6 +129,7 @@ export const TimeEntryDialog: React.FC<TimeEntryDialogProps> = ({
                             />
                         }
                         label="Still Clocked In"
+                        componentsProps={{ typography: { sx: { backgroundColor: 'transparent' } } }}
                     />
 
                     {!formData.is_clocked_in && (
@@ -170,7 +176,7 @@ export const TimeEntryDialog: React.FC<TimeEntryDialogProps> = ({
                     />
                 </Box>
             </DialogContent>
-            <DialogActions sx={{ backgroundColor: 'background.paper', color: 'text.primary' }}>
+            <DialogActions sx={{ color: 'text.primary' }}>
                 <Button onClick={onClose}>Cancel</Button>
                 <Button onClick={onSubmit} variant="contained" color="primary">
                     {selectedEntry ? 'Save Changes' : 'Add Entry'}

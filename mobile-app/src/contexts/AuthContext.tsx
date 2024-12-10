@@ -71,7 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     const [user, setUser] = useState<User | null>(() => {
-        const savedUser = localStorage.getItem('user');
+        const savedUser = sessionStorage.getItem('user');
         return savedUser ? JSON.parse(savedUser) : null;
     });
 
@@ -94,7 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 };
                 setUser(userData);
                 setIsAuthenticated(true);
-                localStorage.setItem('user', JSON.stringify(userData));
+                sessionStorage.setItem('user', JSON.stringify(userData));
                 return;
             }
 
@@ -111,18 +111,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     };
                     setUser(userData);
                     setIsAuthenticated(true);
-                    localStorage.setItem('user', JSON.stringify(userData));
+                    sessionStorage.setItem('user', JSON.stringify(userData));
                 })
                 .catch((error) => {
                     console.error('Error fetching employee info:', error);
                     setUser(null);
                     setIsAuthenticated(false);
-                    localStorage.removeItem('user');
+                    sessionStorage.removeItem('user');
                 });
         } else {
             setUser(null);
             setIsAuthenticated(false);
-            localStorage.removeItem('user');
+            sessionStorage.removeItem('user');
         }
     }, [token]);
 
@@ -130,10 +130,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         authLogout();
         setUser(null);
         setIsAuthenticated(false);
-        localStorage.removeItem('user');
+        sessionStorage.removeItem('user');
         // Force clear any remaining state
-        localStorage.removeItem('token');
-        localStorage.removeItem('refresh_token');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('refresh_token');
         sessionStorage.clear();
     }, []);
 
