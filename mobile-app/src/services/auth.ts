@@ -3,6 +3,13 @@ import { API_ENDPOINTS } from '../config';
 import { encryptCredentials } from '../utils/encryption';
 import { APIError, handleAPIError } from '../utils/apiErrors';
 
+// Extend Window interface to include our custom properties
+declare global {
+    interface Window {
+        tokenRefreshTimer?: ReturnType<typeof setTimeout>;
+    }
+}
+
 export interface LoginResponse {
     access: string;
     refresh: string;
@@ -32,13 +39,31 @@ export const clearAllUserData = () => {
         
         // Clear any cached data
         sessionStorage.clear();
+        localStorage.clear(); // Also clear localStorage for complete cleanup
         
-        // Remove Authorization header
+        // Clear any sensitive data in memory
         if (axiosInstance.defaults.headers.common['Authorization']) {
             delete axiosInstance.defaults.headers.common['Authorization'];
         }
+        
+        // Clear any pending token refresh timers
+        if (window.tokenRefreshTimer) {
+            clearTimeout(window.tokenRefreshTimer);
+            window.tokenRefreshTimer = undefined;
+        }
     } catch (error) {
         console.error('Error clearing user data:', error);
+    }
+};
+
+// Token validation helper
+const isTokenValid = (token: string): boolean => {
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const expirationTime = payload.exp * 1000; // Convert to milliseconds
+        return Date.now() < expirationTime;
+    } catch {
+        return false;
     }
 };
 
@@ -46,6 +71,11 @@ export const login = async (username: string, password: string): Promise<LoginRe
     try {
         // Clear any existing data before login
         clearAllUserData();
+        
+        // Basic input validation
+        if (!username || !password) {
+            throw new APIError('Username and password are required', 400);
+        }
         
         // Encrypt credentials before sending
         const encryptedData = await encryptCredentials(username, password);
@@ -59,7 +89,12 @@ export const login = async (username: string, password: string): Promise<LoginRe
 
         const { access, refresh, ...userData } = response.data;
 
-        // Store tokens
+        // Validate tokens before storing
+        if (!isTokenValid(access)) {
+            throw new APIError('Invalid access token received', 401);
+        }
+
+        // Store tokens securely
         sessionStorage.setItem('token', access);
         sessionStorage.setItem('refresh_token', refresh);
 
@@ -69,28 +104,38 @@ export const login = async (username: string, password: string): Promise<LoginRe
             username: userData.username,
             email: userData.email,
             is_staff: userData.is_staff,
-            is_admin: userData.is_staff, // Admin status is same as staff status
+            is_admin: userData.is_staff,
             force_password_change: userData.force_password_change,
-            employee: !userData.is_staff // If not staff, assume they're an employee
+            employee: !userData.is_staff
         };
         sessionStorage.setItem('user', JSON.stringify(userDataToStore));
 
         // Update axios instance authorization header
         axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
+        // Set up automatic token refresh
+        const payload = JSON.parse(atob(access.split('.')[1]));
+        const tokenExp = payload.exp * 1000;
+        const refreshTime = tokenExp - Date.now() - (5 * 60 * 1000); // Refresh 5 minutes before expiry
+        
+        if (window.tokenRefreshTimer) {
+            clearTimeout(window.tokenRefreshTimer);
+        }
+        
+        window.tokenRefreshTimer = setTimeout(async () => {
+            try {
+                await refreshAuthToken();
+            } catch (error) {
+                console.error('Token refresh failed:', error);
+                // Force logout if token refresh fails
+                await logout();
+            }
+        }, refreshTime);
+
         return response.data;
     } catch (error) {
-        // Clear any existing tokens on login failure
         clearAllUserData();
-        
-        // Convert error to APIError with appropriate message
-        if (error instanceof Error) {
-            if (error.message.includes('401') || error.message.includes('403')) {
-                throw new APIError('Invalid username or password', 401);
-            }
-            throw new APIError(error.message, 500);
-        }
-        throw new APIError('An error occurred during login', 500);
+        throw handleAPIError(error);
     }
 };
 
