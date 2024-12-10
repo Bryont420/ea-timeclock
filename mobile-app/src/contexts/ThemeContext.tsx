@@ -510,13 +510,25 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             '&.app-header, &.login-header, &.employee-header': {
               backgroundColor: 'transparent',
             },
+            // Specific styles for password criteria
+            '&.password-criteria': {
+              backgroundColor: 'transparent', // Ensure no background
+              padding: 0,
+              borderRadius: 0,
+              '&.met': {
+                color: '#4caf50', // Green for met criteria
+              },
+              '&.unmet': {
+                color: '#f44336', // Red for unmet criteria
+              },
+            },
             // Default style for other headers
-            '&:not(.login-header):not(.app-header):not(.employee-header)': {
+            '&:not(.login-header):not(.app-header):not(.employee-header):not(.password-criteria)': {
               backgroundColor: applyTheme.palette.background.default,
               color: applyTheme.palette.text.primary,
               padding: '8px 16px',
               borderRadius: '4px',
-            },
+            },      
           },
           // Override for h1-h6 styles
           h1: {
