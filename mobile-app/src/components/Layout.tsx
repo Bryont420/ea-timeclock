@@ -4,7 +4,7 @@
  * and logout functionality, with different routes for admin and regular users.
  */
 
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
     AppBar,
@@ -53,6 +53,7 @@ export const Layout = React.memo<LayoutProps>(({ children }) => {
     const location = useLocation();
     const { resetToDefault } = useBackground();
     const { user, logout: authLogout } = useAuth();
+    const mainRef = useRef<HTMLDivElement>(null);
 
     // Set document title based on user type
     useEffect(() => {
@@ -62,10 +63,27 @@ export const Layout = React.memo<LayoutProps>(({ children }) => {
     // Initialize auto-logout
     useAutoLogout();
 
+    // Focus management for route changes
+    useEffect(() => {
+        // Remove any aria-hidden from root on route changes
+        const root = document.getElementById('root');
+        if (root) {
+            root.removeAttribute('aria-hidden');
+        }
+        // Move focus to main content area
+        if (mainRef.current) {
+            mainRef.current.focus();
+        }
+    }, [location.pathname]);
+
     /**
      * Handles logout functionality, including background reset and navigation to the login page.
      */
     const handleLogout = useCallback(async () => {
+        // Remove focus from any active element before logout
+        if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+        }
         resetToDefault(); // Reset background to default
         document.title = 'Time Clock'; // Reset title immediately
         await authLogout(); // Use auth context's logout
@@ -95,7 +113,13 @@ export const Layout = React.memo<LayoutProps>(({ children }) => {
     }, [navigate]);
 
     return (
-        <Box sx={{ pb: 7 }}>
+        <Box 
+            ref={mainRef}
+            sx={{ pb: 7 }}
+            tabIndex={-1} // Makes it focusable but not in tab order
+            role="main"
+            aria-label="main content"
+        >
             <AppBar position="static" sx={{ backgroundColor: 'background.paper' }}>
                 <Toolbar>
                     <ThemeSelector />

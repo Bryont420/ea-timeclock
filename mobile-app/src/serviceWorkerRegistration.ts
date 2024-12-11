@@ -21,6 +21,7 @@ const isLocalhost = Boolean(
 type Config = {
   onSuccess?: (registration: ServiceWorkerRegistration) => void;
   onUpdate?: (registration: ServiceWorkerRegistration) => void;
+  onError?: (error: Error) => void;
 };
 
 export function register(config?: Config) {
@@ -98,6 +99,9 @@ function registerValidSW(swUrl: string, config?: Config) {
     })
     .catch((error) => {
       console.error('Error during service worker registration:', error);
+      if (config && config.onError) {
+        config.onError(error);
+      }
     });
 }
 
@@ -124,8 +128,11 @@ function checkValidServiceWorker(swUrl: string, config?: Config) {
         registerValidSW(swUrl, config);
       }
     })
-    .catch(() => {
+    .catch((error) => {
       console.log('No internet connection found. App is running in offline mode.');
+      if (config && config.onError) {
+        config.onError(error);
+      }
     });
 }
 

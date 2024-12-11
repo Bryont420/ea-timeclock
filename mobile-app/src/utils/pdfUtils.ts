@@ -1,5 +1,10 @@
-import jsPDF from 'jspdf';
 import { format } from 'date-fns';
+
+// Lazy load jsPDF to reduce initial bundle size
+const loadJsPDF = async () => {
+  const { default: jsPDF } = await import(/* webpackChunkName: "jspdf" */ 'jspdf');
+  return { jsPDF };
+};
 
 interface TimeEntry {
     id: number;
@@ -19,7 +24,7 @@ interface PDFTextOptions {
     align?: 'left' | 'center' | 'right';
 }
 
-const wrapText = (doc: jsPDF, text: string, maxWidth: number): string[] => {
+const wrapText = (doc: any, text: string, maxWidth: number): string[] => {
     const textLines = text.split('\n');
     const resultLines: string[] = [];
 
@@ -44,7 +49,7 @@ const wrapText = (doc: jsPDF, text: string, maxWidth: number): string[] => {
 };
 
 const drawCell = (
-    doc: jsPDF, 
+    doc: any, 
     text: string, 
     x: number, 
     y: number, 
@@ -91,7 +96,7 @@ const drawCell = (
 };
 
 const drawHeader = (
-    doc: jsPDF, 
+    doc: any, 
     x: number, 
     y: number, 
     columns: { header: string; width: number; }[]
@@ -158,7 +163,8 @@ const convertMinutesToHoursAndMinutes = (totalMinutes: number): string => {
     return `${hours}H ${minutes}M`;
 };
 
-export const generateTimeEntriesPDF = (timeEntries: TimeEntry[]): void => {
+export const generateTimeEntriesPDF = async (timeEntries: TimeEntry[]): Promise<void> => {
+    const { jsPDF } = await loadJsPDF();
     const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'in',
