@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo, useCallback } from 'react';
+import React, { useState, useEffect, memo, useCallback, useMemo } from 'react';
 import {
     Container,
     Typography,
@@ -126,14 +126,14 @@ export const AdminTimeEntries: React.FC = () => {
     const { user } = useAuth();
     const { setRefreshTimeEntries } = useAdmin();
 
-    // Create admin-specific axios instance
-    const adminAxios = axios.create({
+    // Create admin-specific axios instance using useMemo
+    const adminAxios = React.useMemo(() => axios.create({
         baseURL: API_BASE_URL,
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
-    });
+    }), []); // Empty dependency array since API_BASE_URL is constant
 
     const fetchTimeEntries = useCallback(async () => {
         try {
@@ -165,10 +165,21 @@ export const AdminTimeEntries: React.FC = () => {
             setError(errorMessage);
             console.error(err);
         }
-    }, [appliedFilters]);
+    }, [appliedFilters, adminAxios]);
 
-    const debouncedFilterChange = useCallback(
-        debounce((field: keyof FilterData, value: any) => {
+    const fetchEmployees = useCallback(async () => {
+        try {
+            const response = await adminAxios.get(API_ENDPOINTS.ADMIN.EMPLOYEES);
+            setEmployees(response.data);
+        } catch (err) {
+            setError('Failed to fetch employees');
+            console.error(err);
+        }
+    }, [adminAxios]);
+
+    // Memoize the debounced filter change function
+    const debouncedFilterChange = useMemo(
+        () => debounce((field: keyof FilterData, value: any) => {
             setFilterData(prev => ({ ...prev, [field]: value }));
         }, 300),
         []
@@ -188,15 +199,23 @@ export const AdminTimeEntries: React.FC = () => {
         setAppliedFilters(filterData);
     };
 
-    const fetchEmployees = async () => {
-        try {
-            const response = await adminAxios.get(API_ENDPOINTS.ADMIN.EMPLOYEES);
-            setEmployees(response.data);
-        } catch (err) {
-            setError('Failed to fetch employees');
-            console.error(err);
+    useEffect(() => {
+        fetchTimeEntries();
+    }, [fetchTimeEntries]);
+
+    useEffect(() => {
+        fetchEmployees();
+        
+        if (setRefreshTimeEntries) {
+            setRefreshTimeEntries(fetchTimeEntries);
         }
-    };
+
+        return () => {
+            if (setRefreshTimeEntries) {
+                setRefreshTimeEntries(() => {});  // Set to no-op function instead of null
+            }
+        };
+    }, [fetchEmployees, setRefreshTimeEntries, fetchTimeEntries]);
 
     const fetchEmployeeStatus = async (employeeId: string): Promise<boolean> => {
         try {
@@ -237,18 +256,6 @@ export const AdminTimeEntries: React.FC = () => {
             console.error('Error updating employee status:', err);
         }
     };
-
-    useEffect(() => {
-        fetchTimeEntries();
-    }, [appliedFilters, fetchTimeEntries]);
-
-    useEffect(() => {
-        fetchEmployees();
-        
-        if (setRefreshTimeEntries) {
-            setRefreshTimeEntries(fetchTimeEntries);
-        }
-    }, [setRefreshTimeEntries, fetchTimeEntries]);
 
     const handleEdit = (entry: TimeEntry) => {
         // Find the employee by matching the name

@@ -141,13 +141,23 @@ export const login = async (username: string, password: string): Promise<LoginRe
 
 export const logout = async (): Promise<void> => {
     try {
-        const refreshToken = sessionStorage.getItem('refresh_token');
+        const token = getToken();
+        const refreshToken = getRefreshToken();
         
-        if (refreshToken) {
-            await axiosInstance.post(API_ENDPOINTS.AUTH.LOGOUT, { refresh_token: refreshToken });
+        if (token && refreshToken) {
+            await axiosInstance.post(
+                API_ENDPOINTS.AUTH.LOGOUT, 
+                { refresh_token: refreshToken },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
         }
     } catch (error) {
         console.error('Logout error:', error instanceof Error ? error.message : 'Unknown error');
+        // Even if the server request fails, we still want to clear local data
     } finally {
         clearAllUserData();
     }

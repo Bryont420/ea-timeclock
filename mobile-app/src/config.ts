@@ -12,7 +12,6 @@ const getApiBaseUrl = () => {
     }
 
     const hostname = window.location.hostname;
-    const protocol = window.location.protocol;
 
     // For local development
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
