@@ -7,7 +7,7 @@
                connect-src 'self' https://ea-time-clock.duckdns.org:1832;
                style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
                style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com;
-               font-src 'self' data: https://fonts.gstatic.com;
+               font-src 'self' https://fonts.gstatic.com data:;
                img-src 'self' data: blob:;
                script-src 'self' 'unsafe-inline' 'unsafe-eval';
                worker-src 'self' blob:;
@@ -25,8 +25,50 @@
     <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
     <link rel="dns-prefetch" href="https://ea-time-clock.duckdns.org:1832" />
     
-    <!-- Preload critical resources -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" as="style" />
+  <!-- Preload critical font -->
+  <link
+    rel="preload"
+    href="https://fonts.gstatic.com/s/roboto/v20/KFOmCnqEu92Fr1Mu4mxK.woff2"
+    as="font"
+    type="font/woff2"
+    crossorigin
+  />
+
+  <!-- Inline critical font -->
+  <style>
+    /* Inline critical Roboto font */
+    @font-face {
+      font-family: 'Roboto';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/roboto/v20/KFOmCnqEu92Fr1Mu4mxK.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+
+  <!-- Critical CSS for header -->
+  <style>
+    .MuiTypography-h5 {
+      margin: 0;
+      font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+      font-weight: 400;
+      font-size: 1.5rem;
+      line-height: 1.334;
+      letter-spacing: 0em;
+    }
+    .MuiTypography-alignCenter {
+      text-align: center;
+    }
+  </style>
+
+  <!-- Load remaining fonts async -->
+  <link 
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" 
+    rel="stylesheet"
+    media="print"
+    onload="this.media='all'"
+  />  
     
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" type="image/x-icon" />
     <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico" type="image/x-icon" />

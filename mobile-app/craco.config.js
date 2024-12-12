@@ -184,6 +184,19 @@ module.exports = {
         }
       }
 
+      // Configure script loading and cross-origin settings
+      webpackConfig.output.crossOriginLoading = 'anonymous';
+
+      // Modify HTMLWebpackPlugin to configure script loading
+      const htmlWebpackPlugin = webpackConfig.plugins.find(
+        plugin => plugin.constructor.name === 'HtmlWebpackPlugin'
+      );
+
+      if (htmlWebpackPlugin) {
+        htmlWebpackPlugin.userOptions.inject = 'body';
+        htmlWebpackPlugin.userOptions.scriptLoading = 'defer';
+      }
+
       return webpackConfig;
     },
   },

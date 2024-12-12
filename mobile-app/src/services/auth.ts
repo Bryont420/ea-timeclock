@@ -173,12 +173,29 @@ export const verifyBiometric = async (username: string): Promise<{ verified: boo
     }
 };
 
+// Rate limiting for login attempts
+const loginAttempts = new Map<string, { count: number; timestamp: number }>();
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
+
 export const login = async (
     username: string, 
     password?: string, 
     isBiometric: boolean = false,
     biometricCredential?: any
 ): Promise<LoginResponse> => {
+    // Check rate limiting
+    const userAttempts = loginAttempts.get(username);
+    const now = Date.now();
+    
+    if (userAttempts && userAttempts.count >= MAX_LOGIN_ATTEMPTS) {
+        if (now - userAttempts.timestamp < LOCKOUT_DURATION) {
+            throw new APIError('Too many login attempts. Please try again later.', 429);
+        } else {
+            loginAttempts.delete(username);
+        }
+    }
+
     try {
         // Clear any existing data before login attempt
         clearAllUserData();
@@ -269,6 +286,13 @@ export const login = async (
 
         return response.data;
     } catch (error) {
+        // Update login attempts on failure
+        const attempts = loginAttempts.get(username);
+        if (attempts) {
+            loginAttempts.set(username, { count: attempts.count + 1, timestamp: Date.now() });
+        } else {
+            loginAttempts.set(username, { count: 1, timestamp: Date.now() });
+        }
         clearAllUserData();
         if (error instanceof APIError) {
             throw error;

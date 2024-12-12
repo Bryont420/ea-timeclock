@@ -1,148 +1,184 @@
-// This optional code is used to register a service worker.
-// register() is not called by default.
-
-// This lets the app load faster on subsequent visits in production, and gives
-// it offline capabilities. However, it also means that developers (and users)
-// will only see deployed updates on subsequent visits to a page, after all the
-// existing tabs open on the page have been closed, since previously cached
-// resources are updated in the background.
-
-// To learn more about the benefits of this model and instructions on how to
-// opt-in, read https://cra.link/PWA
-
-const isLocalhost = Boolean(
-  window.location.hostname === 'localhost' ||
-    // [::1] is the IPv6 localhost address.
-    window.location.hostname === '[::1]' ||
-    // 127.0.0.0/8 are considered localhost for IPv4.
-    window.location.hostname.match(/^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/)
-);
-
 type Config = {
   onSuccess?: (registration: ServiceWorkerRegistration) => void;
   onUpdate?: (registration: ServiceWorkerRegistration) => void;
-  onError?: (error: Error) => void;
 };
 
-export function register(config?: Config) {
-  if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
-    // The URL constructor is available in all browsers that support SW.
-    const publicUrl = new URL(process.env.PUBLIC_URL, window.location.href);
-    if (publicUrl.origin !== window.location.origin) {
-      // Our service worker won't work if PUBLIC_URL is on a different origin
-      // from what our page is served on. This might happen if a CDN is used to
-      // serve assets; see https://github.com/facebook/create-react-app/issues/2374
-      return;
+let deferredPrompt: any = null;
+
+function showInstallBanner() {
+  if (!deferredPrompt) return;
+
+  const banner = document.createElement('div');
+  banner.className = 'install-banner';
+  banner.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2196F3;
+    color: white;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 1000;
+  `;
+  
+  const content = document.createElement('span');
+  content.textContent = 'Install Time Clock for easier access';
+  
+  const buttonContainer = document.createElement('div');
+  buttonContainer.style.display = 'flex';
+  buttonContainer.style.gap = '8px';
+  
+  const installButton = document.createElement('button');
+  installButton.textContent = 'Install';
+  installButton.style.cssText = `
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background: white;
+    color: #2196F3;
+    cursor: pointer;
+  `;
+  
+  installButton.onclick = async () => {
+    if (deferredPrompt) {
+      try {
+        deferredPrompt.preventDefault();
+        await deferredPrompt.prompt();
+        const choiceResult = await deferredPrompt.userChoice;
+        if (choiceResult.outcome === 'accepted') {
+          console.log('User accepted the install prompt');
+        }
+        deferredPrompt = null;
+        banner.remove();
+      } catch (err) {
+        console.error('Error showing install prompt:', err);
+      }
+    }
+  };
+  
+  const closeButton = document.createElement('button');
+  closeButton.textContent = '✕';
+  closeButton.style.cssText = `
+    padding: 8px;
+    border: none;
+    background: transparent;
+    color: white;
+    cursor: pointer;
+  `;
+  
+  closeButton.onclick = () => {
+    banner.remove();
+    sessionStorage.setItem('installBannerDismissed', 'true');
+  };
+  
+  buttonContainer.appendChild(installButton);
+  buttonContainer.appendChild(closeButton);
+  
+  banner.appendChild(content);
+  banner.appendChild(buttonContainer);
+  
+  document.body.appendChild(banner);
+}
+
+async function registerValidSW(swUrl: string, config?: Config) {
+  try {
+    const registration = await navigator.serviceWorker.register(swUrl);
+
+    // Force update check immediately and periodically
+    const checkForUpdates = async () => {
+      try {
+        await registration.update();
+        
+        // Handle waiting worker (could be from old version)
+        if (registration.waiting) {
+          // Try to activate it immediately
+          registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+          
+          // Force reload after a short delay to ensure the new version takes control
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        }
+      } catch (error) {
+        console.error('Error checking for updates:', error);
+      }
+    };
+
+    // Check for updates immediately
+    checkForUpdates();
+    
+    // Check for updates every minute
+    setInterval(checkForUpdates, 60000);
+
+    registration.onupdatefound = () => {
+      const installingWorker = registration.installing;
+      if (installingWorker == null) {
+        return;
+      }
+
+      installingWorker.onstatechange = () => {
+        if (installingWorker.state === 'installed') {
+          if (navigator.serviceWorker.controller) {
+            // New version available - force update
+            if (registration.waiting) {
+              registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+            }
+          }
+        }
+      };
+    };
+
+    // Listen for the controllerchange event
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      // Reload the page when the new service worker takes control
+      window.location.reload();
+    });
+
+    // Additional check for older versions
+    if (registration.active) {
+      // Force the active worker to check for updates
+      registration.active.postMessage({ type: 'CHECK_FOR_UPDATES' });
+      
+      // If we have a waiting worker from an old version, activate it
+      if (registration.waiting) {
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      }
     }
 
-    window.addEventListener('load', () => {
-      const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
-
-      if (isLocalhost) {
-        // This is running on localhost. Let's check if a service worker still exists or not.
-        checkValidServiceWorker(swUrl, config);
-
-        // Add some additional logging to localhost, pointing developers to the
-        // service worker/PWA documentation.
-        navigator.serviceWorker.ready.then(() => {
-          console.log(
-            'This web app is being served cache-first by a service ' +
-              'worker. To learn more, visit https://cra.link/PWA'
-          );
-        });
-      } else {
-        // Is not localhost. Just register service worker
-        registerValidSW(swUrl, config);
-      }
-    });
+  } catch (error) {
+    console.error('Error during service worker registration:', error);
   }
 }
 
-function registerValidSW(swUrl: string, config?: Config) {
-  navigator.serviceWorker
-    .register(swUrl)
-    .then((registration) => {
-      registration.onupdatefound = () => {
-        const installingWorker = registration.installing;
-        if (installingWorker == null) {
-          return;
+export function register(config?: Config) {
+  if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
+      registerValidSW(swUrl, config);
+
+      window.addEventListener('beforeinstallprompt', (e: Event) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (!sessionStorage.getItem('installBannerDismissed')) {
+          showInstallBanner();
         }
-        installingWorker.onstatechange = () => {
-          if (installingWorker.state === 'installed') {
-            if (navigator.serviceWorker.controller) {
-              // At this point, the updated precached content has been fetched,
-              // but the previous service worker will still serve the older
-              // content until all client tabs are closed.
-              console.log(
-                'New content is available and will be used when all ' +
-                  'tabs for this page are closed. See https://cra.link/PWA.'
-              );
-
-              // Execute callback
-              if (config && config.onUpdate) {
-                config.onUpdate(registration);
-              }
-            } else {
-              // At this point, everything has been precached.
-              // It's the perfect time to display a
-              // "Content is cached for offline use." message.
-              console.log('Content is cached for offline use.');
-
-              // Execute callback
-              if (config && config.onSuccess) {
-                config.onSuccess(registration);
-              }
-            }
-          }
-        };
-      };
-    })
-    .catch((error) => {
-      console.error('Error during service worker registration:', error);
-      if (config && config.onError) {
-        config.onError(error);
-      }
+      });
     });
-}
-
-function checkValidServiceWorker(swUrl: string, config?: Config) {
-  // Check if the service worker can be found. If it can't reload the page.
-  fetch(swUrl, {
-    headers: { 'Service-Worker': 'script' },
-  })
-    .then((response) => {
-      // Ensure service worker exists, and that we really are getting a JS file.
-      const contentType = response.headers.get('content-type');
-      if (
-        response.status === 404 ||
-        (contentType != null && contentType.indexOf('javascript') === -1)
-      ) {
-        // No service worker found. Probably a different app. Reload the page.
-        navigator.serviceWorker.ready.then((registration) => {
-          registration.unregister().then(() => {
-            window.location.reload();
-          });
-        });
-      } else {
-        // Service worker found. Proceed as normal.
-        registerValidSW(swUrl, config);
-      }
-    })
-    .catch((error) => {
-      console.log('No internet connection found. App is running in offline mode.');
-      if (config && config.onError) {
-        config.onError(error);
-      }
-    });
+  }
 }
 
 export function unregister() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.ready
-      .then((registration) => {
+      .then(registration => {
         registration.unregister();
       })
-      .catch((error) => {
+      .catch(error => {
         console.error(error.message);
       });
   }
