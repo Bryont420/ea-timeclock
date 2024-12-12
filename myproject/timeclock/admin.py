@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib import admin
-from .models import Employee, TimeEntry, Note, PasswordResetToken
+from .models import Employee, TimeEntry, Note, PasswordResetToken, BiometricCredential
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
@@ -198,6 +198,16 @@ class PasswordResetTokenAdmin(admin.ModelAdmin):
 
 admin.site.register(PasswordResetToken, PasswordResetTokenAdmin)
 
+class BiometricCredentialAdmin(admin.ModelAdmin):
+    list_display = ('user', 'credential_id', 'created_at', 'last_used')
+    list_filter = ('created_at', 'last_used')
+    search_fields = ('user__username', 'credential_id')
+    readonly_fields = ('created_at', 'last_used')
+
+    def get_queryset(self, request):
+        return super().get_queryset(request)
+
+admin.site.register(BiometricCredential, BiometricCredentialAdmin)
 admin.site.register(Note, NoteAdmin)
 admin.site.register(Employee, EmployeeAdmin)
 admin.site.register(TimeEntry, TimeEntryAdmin)

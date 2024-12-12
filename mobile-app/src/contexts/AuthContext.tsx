@@ -22,6 +22,8 @@ interface User {
     is_staff: boolean;
     /** Whether the user has admin privileges */
     is_admin: boolean;
+    /** Whether the user needs to change their password */
+    force_password_change: boolean;
     /** Additional employee information for non-admin users */
     employee?: EmployeeInfo | null;
 }
@@ -81,15 +83,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (token) {
             // First get the stored user data which includes staff status
             const storedUserData = getUserData();
-            
-            // If the user is an admin, we don't need to fetch employee info
-            if (storedUserData?.is_staff) {
+            if (!storedUserData) {
+                console.error('No user data found in session storage');
+                setUser(null);
+                setIsAuthenticated(false);
+                sessionStorage.removeItem('user');
+                return;
+            }
+
+            // If the user is an admin/staff, we don't need to fetch employee info
+            if (storedUserData.is_staff) {
                 const userData: User = {
                     id: storedUserData.id,
                     username: storedUserData.username,
                     email: storedUserData.email,
                     is_staff: true,
                     is_admin: true,
+                    force_password_change: false,
                     employee: null
                 };
                 setUser(userData);
@@ -102,11 +112,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             getEmployeeInfo()
                 .then(data => {
                     const userData: User = {
-                        id: parseInt(data.id, 10),
-                        username: `${data.first_name} ${data.last_name}`,
-                        email: storedUserData?.email || '',
-                        is_staff: storedUserData?.is_staff || false,
-                        is_admin: storedUserData?.is_staff || false,
+                        id: storedUserData.id,
+                        username: storedUserData.username,
+                        email: storedUserData.email,
+                        is_staff: false,
+                        is_admin: false,
+                        force_password_change: false,
                         employee: data
                     };
                     setUser(userData);
@@ -115,6 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 })
                 .catch((error) => {
                     console.error('Error fetching employee info:', error);
+                    // If employee info fetch fails, log out non-staff users
                     setUser(null);
                     setIsAuthenticated(false);
                     sessionStorage.removeItem('user');

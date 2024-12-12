@@ -114,24 +114,33 @@ export const BackgroundProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const refreshBackground = useCallback(async () => {
         const now = Date.now();
         if (now - lastFetchTime.current < FETCH_COOLDOWN) {
-            return; // Skip if called too soon
+            console.debug('Skipping background refresh due to cooldown');
+            return;
         }
+
+        // Always update lastFetchTime to prevent spam
         lastFetchTime.current = now;
 
         try {
+            console.debug('Fetching background image for user:', { 
+                isAuthenticated, 
+                isStaff: user?.is_staff,
+                currentType: currentUserType.current
+            });
+
             const image = await getBackgroundImage();
-            if (image) {
-                const isAdmin = user?.is_staff || false;
-                const paths = getBackgroundPaths(image, isAdmin);
-                setBackgroundImage(paths);
-            } else {
-                resetToDefault();
-            }
+            console.debug('Received background image:', image);
+
+            const isAdmin = user?.is_staff || false;
+            const paths = getBackgroundPaths(image, isAdmin);
+            console.debug('Setting background paths:', paths);
+            
+            setBackgroundImage(paths);
         } catch (error) {
             console.error('Failed to fetch background image:', error);
             resetToDefault();
         }
-    }, [user?.is_staff, resetToDefault]);
+    }, [user?.is_staff, isAuthenticated, resetToDefault]);
 
     /**
      * Handles changes in user authentication status.
@@ -139,20 +148,22 @@ export const BackgroundProvider: React.FC<{ children: React.ReactNode }> = ({ ch
      */
     useEffect(() => {
         if (!isAuthenticated) {
+            console.debug('User not authenticated, resetting background');
             resetToDefault();
             currentUserType.current = null;
             return;
         }
 
-        // Only refresh background if user type has changed
         const newUserType = user?.is_staff ? 'admin' : 'user';
+        console.debug('Checking user type change:', {
+            current: currentUserType.current,
+            new: newUserType
+        });
+
         if (currentUserType.current !== newUserType) {
+            console.debug('User type changed, updating background');
             currentUserType.current = newUserType;
-            // Add a small delay to prevent race conditions with image loading
-            const timer = setTimeout(() => {
-                refreshBackground();
-            }, 100);
-            return () => clearTimeout(timer);
+            refreshBackground();
         }
     }, [isAuthenticated, user?.is_staff, resetToDefault, refreshBackground]);
 
@@ -162,6 +173,7 @@ export const BackgroundProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     useEffect(() => {
         const handleStorageChange = (e: StorageEvent) => {
             if (e.key === 'token' || e.key === 'user') {
+                console.debug('Storage changed, resetting background');
                 resetToDefault();
                 currentUserType.current = null;
             }

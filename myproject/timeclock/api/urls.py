@@ -19,6 +19,7 @@ from .views.auth_views import logout_view
 from .views import theme_views
 from .views.email_update_view import EmailUpdateView
 from .views.password_reset import request_password_reset, reset_password
+from .views.biometric_views import BiometricLoginView, BiometricRegistrationView
 
 router = routers.DefaultRouter()
 router.register(r'time-off-requests', TimeOffRequestViewSet, basename='time-off-request')
@@ -42,4 +43,7 @@ urlpatterns = [
     path('employee/email/update/', EmailUpdateView.as_view(), name='email-update'),
     path('password-reset/request/', request_password_reset, name='request_password_reset'),
     path('password-reset/reset/<str:token>/', reset_password, name='reset_password'),
+    # Biometric Authentication
+    path('auth/biometric-login/', BiometricLoginView.as_view(), name='biometric-login'),
+    path('auth/biometric-register/', BiometricRegistrationView.as_view(), name='biometric-register'),
 ] + router.urls

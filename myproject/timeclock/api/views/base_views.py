@@ -309,34 +309,51 @@ def time_entries(request):
 def background_image(request):
     if request.method == 'GET':
         try:
+            logger.info(f"Getting background image for user: {request.user.username} (is_staff: {request.user.is_staff})")
+            
             if request.user.is_staff:
                 # Get admin background
                 admin_profile = request.user.adminprofile
+                logger.info(f"Admin profile found, background: {admin_profile.background_image or 'None'}")
                 if not admin_profile.background_image:
                     return Response({'background_image': None})
                 return Response({'background_image': admin_profile.background_image})
             else:
                 # Get employee background
                 employee = request.user.employee
+                logger.info(f"Employee profile found, background: {employee.background_image or 'None'}")
                 if not employee.background_image:
                     return Response({'background_image': None})
                 return Response({'background_image': employee.background_image})
-        except (Employee.DoesNotExist, AdminProfile.DoesNotExist):
+        except (Employee.DoesNotExist, AdminProfile.DoesNotExist) as e:
+            logger.error(f"Profile not found for user {request.user.username}: {str(e)}")
             return Response({'error': 'Profile not found'}, status=404)
+        except Exception as e:
+            logger.error(f"Unexpected error getting background: {str(e)}")
+            return Response({'error': str(e)}, status=500)
     elif request.method == 'POST':
         try:
             background_image = request.data.get('background_image')
+            logger.info(f"Updating background image for user: {request.user.username} (is_staff: {request.user.is_staff})")
+            
             if not background_image:
+                logger.warning("No background image provided in request")
                 return Response({'error': 'No background image provided'}, status=400)
 
             if request.user.is_staff:
                 admin_profile = request.user.adminprofile
                 admin_profile.background_image = background_image
                 admin_profile.save()
+                logger.info("Successfully updated admin background image")
             else:
                 employee = request.user.employee
                 employee.background_image = background_image
                 employee.save()
+                logger.info("Successfully updated employee background image")
             return Response({'message': 'Background image updated successfully'})
-        except (Employee.DoesNotExist, AdminProfile.DoesNotExist):
+        except (Employee.DoesNotExist, AdminProfile.DoesNotExist) as e:
+            logger.error(f"Profile not found for user {request.user.username}: {str(e)}")
             return Response({'error': 'Profile not found'}, status=404)
+        except Exception as e:
+            logger.error(f"Error updating background image: {str(e)}")
+            return Response({'error': str(e)}, status=500)
