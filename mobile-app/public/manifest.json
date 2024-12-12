@@ -29,5 +29,9 @@
   "color_scheme": "light dark",
   "description": "Mobile time clock application for EA Promos employees",
   "categories": ["business", "productivity"],
-  "screenshots": []
+  "screenshots": [],
+  "permissions": [
+    "publickey-credentials-get",
+    "screen-wake-lock"
+  ]
 }

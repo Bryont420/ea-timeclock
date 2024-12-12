@@ -335,3 +335,19 @@ class PasswordResetToken(models.Model):
     class Meta:
         verbose_name = "Password Reset Token"
         verbose_name_plural = "Password Reset Tokens"
+
+
+class BiometricCredential(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='biometric_credentials')
+    credential_id = models.CharField(max_length=255, unique=True)
+    public_key = models.TextField()
+    sign_count = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_used = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'biometric_credentials'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Biometric credential for {self.user.username}"

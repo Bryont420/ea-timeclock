@@ -1,16 +1,19 @@
 /**
  * @fileoverview Login form component that provides a user interface for
  * authentication. Features username and password inputs with proper validation,
- * error handling, and loading states.
+ * error handling, and loading states. Also supports biometric authentication.
  */
 
-import React, { memo } from 'react';
-import {
-    TextField,
-    Button,
-    Typography,
-    Box,
+import React, { ChangeEvent } from 'react';
+import { Link } from 'react-router-dom';
+import { 
+    Box, 
+    TextField, 
+    Button, 
+    Typography, 
+    Stack
 } from '@mui/material';
+import { FingerprintOutlined as FingerprintIcon } from '@mui/icons-material';
 
 /**
  * Props interface for the LoginForm component.
@@ -24,12 +27,16 @@ interface LoginFormProps {
     error: string;
     /** Whether the form is in a loading state */
     loading: boolean;
+    /** Whether biometric authentication is available */
+    isBiometricAvailable: boolean;
     /** Callback function to handle username changes */
     onUsernameChange: (value: string) => void;
     /** Callback function to handle password changes */
     onPasswordChange: (value: string) => void;
     /** Callback function to handle form submission */
-    onSubmit: (e: React.FormEvent) => void;
+    onSubmit: (e: React.FormEvent & { isBiometric?: boolean; biometricCredential?: any }) => Promise<any>;
+    /** Callback function to handle biometric login */
+    onBiometricLogin: () => Promise<void>;
 }
 
 /**
@@ -39,6 +46,7 @@ interface LoginFormProps {
  * - Error message display
  * - Loading state handling
  * - Form submission handling
+ * - Biometric authentication support
  * - Proper autocomplete attributes
  * - Responsive layout with consistent spacing
  * 
@@ -47,58 +55,73 @@ interface LoginFormProps {
  * @param props.password - Current password value
  * @param props.error - Error message
  * @param props.loading - Loading state
+ * @param props.isBiometricAvailable - Whether biometric authentication is available
  * @param props.onUsernameChange - Username change handler
  * @param props.onPasswordChange - Password change handler
  * @param props.onSubmit - Form submission handler
+ * @param props.onBiometricLogin - Biometric login handler
  * @returns The login form component
  */
-export const LoginForm: React.FC<LoginFormProps> = memo(({
+export const LoginForm: React.FC<LoginFormProps> = ({
     username,
     password,
     error,
     loading,
+    isBiometricAvailable,
     onUsernameChange,
     onPasswordChange,
     onSubmit,
+    onBiometricLogin
 }) => {
+    const handleUsernameChange = (e: ChangeEvent<HTMLInputElement>) => {
+        onUsernameChange(e.target.value);
+    };
+
+    const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
+        onPasswordChange(e.target.value);
+    };
+
     return (
-        <form onSubmit={onSubmit}>
-            <Typography 
-                variant="h5" 
-                component="h1" 
-                gutterBottom 
-                textAlign="center"
-                className="login-header"
-            >
+        <Box component="form" onSubmit={onSubmit} sx={{ width: '100%', maxWidth: 400, mx: 'auto', p: 3 }}>
+            <Typography variant="h5" component="h1" gutterBottom align="center">
                 Time Clock
             </Typography>
+            
             <TextField
-                fullWidth
                 margin="normal"
+                required
+                fullWidth
+                id="username"
                 label="Username"
-                value={username}
-                onChange={(e) => onUsernameChange(e.target.value)}
-                error={!!error}
-                disabled={loading}
+                name="username"
                 autoComplete="username"
+                autoFocus
+                value={username}
+                onChange={handleUsernameChange}
+                disabled={loading}
             />
+            
             <TextField
-                fullWidth
                 margin="normal"
+                required
+                fullWidth
+                name="password"
                 label="Password"
                 type="password"
-                value={password}
-                onChange={(e) => onPasswordChange(e.target.value)}
-                error={!!error}
-                disabled={loading}
+                id="password"
                 autoComplete="current-password"
+                value={password}
+                onChange={handlePasswordChange}
+                disabled={loading}
             />
+
             {error && (
-                <Typography color="error" variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
+                <Typography color="error" variant="body2" sx={{ mt: 2 }}>
                     {error}
                 </Typography>
             )}
-            <Box sx={{ mt: 3 }}>
+
+            <Stack spacing={2} sx={{ mt: 3 }}>
                 <Button
                     type="submit"
                     fullWidth
@@ -107,17 +130,31 @@ export const LoginForm: React.FC<LoginFormProps> = memo(({
                 >
                     {loading ? 'Signing in...' : 'Sign In'}
                 </Button>
-            </Box>
+
+                {isBiometricAvailable && (
+                    <Button
+                        onClick={onBiometricLogin}
+                        disabled={loading}
+                        variant="outlined"
+                        startIcon={<FingerprintIcon />}
+                        fullWidth
+                    >
+                        Sign in with Biometrics
+                    </Button>
+                )}
+            </Stack>
+
             <Box sx={{ mt: 2, textAlign: 'center' }}>
                 <Button
-                    component="a"
-                    href="/password-reset-request"
+                    component={Link}
+                    to="/password-reset-request"
                     variant="text"
                     size="small"
+                    color="primary"
                 >
                     Forgot Password?
                 </Button>
             </Box>
-        </form>
+        </Box>
     );
-});
+};

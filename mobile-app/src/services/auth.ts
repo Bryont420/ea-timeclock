@@ -1,7 +1,8 @@
 import { axiosInstance } from '../utils/axios';
 import { API_ENDPOINTS } from '../config';
+import { APIError } from '../utils/apiErrors';
 import { encryptCredentials } from '../utils/encryption';
-import { APIError, handleAPIError } from '../utils/apiErrors';
+import { isMobileDevice } from '../utils/deviceDetection';
 
 // Extend Window interface to include our custom properties
 declare global {
@@ -32,14 +33,39 @@ export interface UserData {
 
 export const clearAllUserData = () => {
     try {
+        // Save biometric data and lastUsername if on mobile
+        const lastUsername = isMobileDevice() ? localStorage.getItem('lastUsername') : null;
+        const biometricData = isMobileDevice() ? 
+            Object.keys(localStorage)
+                .filter(key => key.startsWith('biometric_'))
+                .reduce((acc: Record<string, string>, key) => {
+                    acc[key] = localStorage.getItem(key) || '';
+                    return acc;
+                }, {}) 
+            : null;
+        
         // Clear auth tokens
         sessionStorage.removeItem('token');
         sessionStorage.removeItem('refresh_token');
         sessionStorage.removeItem('user');
         
-        // Clear any cached data
+        // Clear all storage
         sessionStorage.clear();
-        localStorage.clear(); // Also clear localStorage for complete cleanup
+        localStorage.clear();
+        
+        // Restore saved data on mobile
+        if (isMobileDevice()) {
+            // Restore lastUsername
+            if (lastUsername) {
+                localStorage.setItem('lastUsername', lastUsername);
+            }
+            // Restore biometric data
+            if (biometricData) {
+                Object.entries(biometricData).forEach(([key, value]) => {
+                    localStorage.setItem(key, value);
+                });
+            }
+        }
         
         // Clear any sensitive data in memory
         if (axiosInstance.defaults.headers.common['Authorization']) {
@@ -67,21 +93,132 @@ const isTokenValid = (token: string): boolean => {
     }
 };
 
-export const login = async (username: string, password: string): Promise<LoginResponse> => {
+// Convert ArrayBuffer to Base64 string
+const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+    const uint8Array = new Uint8Array(buffer);
+    let binaryString = '';
+    for (let i = 0; i < uint8Array.length; i++) {
+        binaryString += String.fromCharCode(uint8Array[i]);
+    }
+    return btoa(binaryString);
+};
+
+export const verifyBiometric = async (username: string): Promise<{ verified: boolean, credential: any }> => {
     try {
-        // Clear any existing data before login
-        clearAllUserData();
-        
-        // Basic input validation
-        if (!username || !password) {
-            throw new APIError('Username and password are required', 400);
+        // Get stored credential ID for this user
+        const storedCredentialData = localStorage.getItem(`biometric_${username}`);
+        if (!storedCredentialData) {
+            throw new Error('No biometric credentials found');
         }
-        
-        // Encrypt credentials before sending
-        const encryptedData = await encryptCredentials(username, password);
-        
-        const response = await axiosInstance.post<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN, encryptedData);
-        
+        const storedCredential = JSON.parse(storedCredentialData);
+        if (!storedCredential.rawId) {
+            throw new Error('Invalid stored credential - missing rawId');
+        }
+
+        // Create the challenge
+        const challenge = new Uint8Array(32);
+        window.crypto.getRandomValues(challenge);
+
+        // Convert challenge to base64 string
+        const challengeBase64 = arrayBufferToBase64(challenge);
+
+        // Create assertion options
+        const assertionOptions = {
+            challenge: challengeBase64,
+            allowCredentials: [{
+                id: storedCredential.rawId,
+                type: 'public-key',
+                transports: ['internal']
+            }],
+            timeout: 60000,
+            userVerification: 'required' as UserVerificationRequirement,
+            rpId: window.location.hostname
+        };
+
+        // Get the credential
+        const assertion = await navigator.credentials.get({
+            publicKey: {
+                ...assertionOptions,
+                challenge: challenge,
+                allowCredentials: [{
+                    id: Uint8Array.from(atob(storedCredential.rawId), c => c.charCodeAt(0)),
+                    type: 'public-key',
+                    transports: ['internal']
+                }]
+            }
+        }) as PublicKeyCredential;
+
+        // Get the response
+        const response = assertion.response as AuthenticatorAssertionResponse;
+
+        // Convert the response data to base64
+        const clientDataJSON = arrayBufferToBase64(response.clientDataJSON);
+        const authenticatorData = arrayBufferToBase64(response.authenticatorData);
+        const signature = arrayBufferToBase64(response.signature);
+
+        return {
+            verified: true,
+            credential: {
+                clientData: clientDataJSON,
+                authenticatorData: authenticatorData,
+                signature: signature
+            }
+        };
+    } catch (error) {
+        console.error('Biometric verification error:', error);
+        return {
+            verified: false,
+            credential: null
+        };
+    }
+};
+
+export const login = async (
+    username: string, 
+    password?: string, 
+    isBiometric: boolean = false,
+    biometricCredential?: any
+): Promise<LoginResponse> => {
+    try {
+        // Clear any existing data before login attempt
+        clearAllUserData();
+
+        // Basic input validation
+        if (!username) {
+            throw new APIError('Username is required', 400);
+        }
+
+        let response;
+        if (isBiometric) {
+            // Get stored credential data
+            const storedData = localStorage.getItem(`biometric_${username}`);
+            if (!storedData) {
+                throw new APIError('No stored biometric credentials found', 401);
+            }
+
+            const storedCredential = JSON.parse(storedData);
+            if (!storedCredential.id) {
+                throw new APIError('Invalid stored credential data', 401);
+            }
+
+            // Call biometric login endpoint
+            response = await axiosInstance.post<LoginResponse>(API_ENDPOINTS.AUTH.BIOMETRIC_LOGIN, {
+                username,
+                credential_id: storedCredential.id,
+                client_data: biometricCredential.clientData,
+                authenticator_data: biometricCredential.authenticatorData,
+                signature: biometricCredential.signature
+            });
+        } else {
+            // Regular password login
+            if (!password) {
+                throw new APIError('Password is required for non-biometric login', 400);
+            }
+
+            const requestData = await encryptCredentials(username, password);
+            response = await axiosInstance.post<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN, requestData);
+        }
+
         // Validate response data
         if (!response.data?.access || !response.data?.refresh) {
             throw new APIError('Invalid response from server', 401);
@@ -89,17 +226,17 @@ export const login = async (username: string, password: string): Promise<LoginRe
 
         const { access, refresh, ...userData } = response.data;
 
-        // Validate tokens before storing
+        // Validate token
         if (!isTokenValid(access)) {
             throw new APIError('Invalid access token received', 401);
         }
 
-        // Store tokens securely
+        // Store tokens
         sessionStorage.setItem('token', access);
         sessionStorage.setItem('refresh_token', refresh);
 
         // Store user data
-        const userDataToStore: UserData = {
+        const userDataToStore = {
             id: userData.id,
             username: userData.username,
             email: userData.email,
@@ -110,24 +247,22 @@ export const login = async (username: string, password: string): Promise<LoginRe
         };
         sessionStorage.setItem('user', JSON.stringify(userDataToStore));
 
-        // Update axios instance authorization header
+        // Update axios
         axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
-        // Set up automatic token refresh
+        // Set up token refresh
         const payload = JSON.parse(atob(access.split('.')[1]));
         const tokenExp = payload.exp * 1000;
-        const refreshTime = tokenExp - Date.now() - (5 * 60 * 1000); // Refresh 5 minutes before expiry
-        
+        const refreshTime = tokenExp - Date.now() - (5 * 60 * 1000);
+
         if (window.tokenRefreshTimer) {
             clearTimeout(window.tokenRefreshTimer);
         }
-        
+
         window.tokenRefreshTimer = setTimeout(async () => {
             try {
                 await refreshAuthToken();
             } catch (error) {
-                console.error('Token refresh failed:', error);
-                // Force logout if token refresh fails
                 await logout();
             }
         }, refreshTime);
@@ -135,32 +270,31 @@ export const login = async (username: string, password: string): Promise<LoginRe
         return response.data;
     } catch (error) {
         clearAllUserData();
-        throw handleAPIError(error);
+        if (error instanceof APIError) {
+            throw error;
+        }
+        throw new APIError(`Login failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 401);
     }
 };
 
-export const logout = async (): Promise<void> => {
-    try {
-        const token = getToken();
-        const refreshToken = getRefreshToken();
-        
-        if (token && refreshToken) {
-            await axiosInstance.post(
-                API_ENDPOINTS.AUTH.LOGOUT, 
-                { refresh_token: refreshToken },
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                }
-            );
+export const logout = (): Promise<void> => {
+    return new Promise<void>(async (resolve) => {
+        try {
+            const refreshToken = getRefreshToken();
+            if (refreshToken) {
+                await axiosInstance.post(
+                    API_ENDPOINTS.AUTH.LOGOUT,
+                    { refresh_token: refreshToken }
+                );
+            }
+        } catch (error) {
+            console.error('Logout error:', error instanceof Error ? error.message : 'Unknown error');
+            // Even if the server request fails, we still want to clear local data
+        } finally {
+            clearAllUserData();
+            resolve();
         }
-    } catch (error) {
-        console.error('Logout error:', error instanceof Error ? error.message : 'Unknown error');
-        // Even if the server request fails, we still want to clear local data
-    } finally {
-        clearAllUserData();
-    }
+    });
 };
 
 export const refreshAuthToken = async (): Promise<string> => {
@@ -179,11 +313,42 @@ export const refreshAuthToken = async (): Promise<string> => {
             throw new Error('Invalid response from refresh token endpoint');
         }
 
-        sessionStorage.setItem('token', response.data.access);
-        return response.data.access;
+        const newAccessToken = response.data.access;
+
+        // Validate the new token
+        if (!isTokenValid(newAccessToken)) {
+            throw new Error('Invalid access token received from refresh');
+        }
+
+        // Store the new token
+        sessionStorage.setItem('token', newAccessToken);
+
+        // Update axios authorization header
+        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+
+        // Set up the next token refresh
+        const payload = JSON.parse(atob(newAccessToken.split('.')[1]));
+        const tokenExp = payload.exp * 1000;
+        const refreshTime = tokenExp - Date.now() - (5 * 60 * 1000); // Refresh 5 minutes before expiry
+
+        if (window.tokenRefreshTimer) {
+            clearTimeout(window.tokenRefreshTimer);
+        }
+
+        window.tokenRefreshTimer = setTimeout(async () => {
+            try {
+                await refreshAuthToken();
+            } catch (error) {
+                console.error('Token refresh failed:', error);
+                await logout();
+            }
+        }, refreshTime);
+
+        return newAccessToken;
     } catch (error) {
-        clearAllUserData();
-        return handleAPIError(error);
+        console.error('Error refreshing token:', error);
+        await logout();
+        throw error;
     }
 };
 
