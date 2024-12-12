@@ -1,6 +1,7 @@
 {
   "short_name": "Time Clock",
-  "name": "EA Promos Time Clock",
+  "name": "EA Time Clock",
+  "description": "Employee time tracking application",
   "icons": [
     {
       "src": "favicon.ico",
@@ -23,15 +24,19 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
   "theme_color": "#1976d2",
-  "background_color": "#f5f5f5",
-  "color_scheme": "light dark",
-  "description": "Mobile time clock application for EA Promos employees",
+  "background_color": "#ffffff",
   "categories": ["business", "productivity"],
-  "screenshots": [],
+  "orientation": "any",
   "permissions": [
     "publickey-credentials-get",
     "screen-wake-lock"
-  ]
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://ea-time-clock.duckdns.org:1832/manifest.json"
+    }
+  ],
+  "prefer_related_applications": false
 }

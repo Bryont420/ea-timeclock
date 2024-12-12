@@ -2,8 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
-import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import reportWebVitals from './reportWebVitals';
+import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component<
@@ -83,32 +83,21 @@ root.render(
   </React.StrictMode>
 );
 
-// Register service worker with improved error handling
-serviceWorkerRegistration.register({
-  onUpdate: (registration: ServiceWorkerRegistration) => {
-    const waitingServiceWorker = registration.waiting;
-    if (waitingServiceWorker) {
-      // Show update notification
-      const shouldUpdate = window.confirm(
-        'A new version is available! Would you like to update?'
-      );
-      if (!shouldUpdate) return;
-
-      waitingServiceWorker.addEventListener('statechange', (event: Event) => {
-        if ((event.target as ServiceWorker).state === 'activated') {
-          window.location.reload();
-        }
-      });
-      waitingServiceWorker.postMessage({ type: "SKIP_WAITING" });
-    }
-  },
-  onSuccess: (registration: ServiceWorkerRegistration) => {
-    console.log('Service Worker registration successful');
-  },
-  onError: (error: Error) => {
-    console.error('Service Worker registration failed:', error);
-  }
-});
-
 // Monitor performance metrics
 reportWebVitals(sendToAnalytics);
+
+// If you want your app to work offline and load faster, you can change
+// unregister() to register() below. Note this comes with some pitfalls.
+// Learn more about service workers: https://cra.link/PWA
+serviceWorkerRegistration.register({
+  onUpdate: registration => {
+    // When there's an update, show the update notification
+    const updateNotification = document.createElement('div');
+    updateNotification.className = 'update-notification';
+    updateNotification.innerHTML = `
+      <p>A new version of the app is available!</p>
+      <button onclick="window.location.reload()">Update Now</button>
+    `;
+    document.body.appendChild(updateNotification);
+  }
+});
