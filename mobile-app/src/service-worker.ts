@@ -87,10 +87,19 @@ registerRoute(
   })
 );
 
+// Get the expected origin from the environment
+const ALLOWED_ORIGIN = self.location.origin;
+
 // This allows the web app to trigger skipWaiting via
 // registration.waiting.postMessage({type: 'SKIP_WAITING'})
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
+  // Check if the message is from our application origin
+  if (event.origin !== ALLOWED_ORIGIN) {
+    console.warn(`Rejected message from untrusted origin: ${event.origin}`);
+    return;
+  }
+
+  if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
 });

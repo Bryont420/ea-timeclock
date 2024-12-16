@@ -3,6 +3,13 @@ import { getToken, getRefreshToken } from '../services/auth';
 import { API_BASE_URL } from '../config';
 import { APIError } from './apiErrors';
 
+// Create a safe delay function with bounds
+const safeDelay = (ms: number): Promise<void> => {
+    // Ensure the delay is a number and within reasonable bounds (100ms to 10s)
+    const boundedDelay = Math.min(Math.max(Number(ms) || 2000, 100), 10000);
+    return new Promise(resolve => setTimeout(resolve, boundedDelay));
+};
+
 // Create an axios instance with default config
 export const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
@@ -63,9 +70,8 @@ axiosInstance.interceptors.response.use(
             // If it's a 503 error, wait a bit and retry once
             if (error.response?.status === 503 && !originalRequest._retry) {
                 originalRequest._retry = true;
-                // Use a fixed delay to handle 503 errors
-                const retryDelay = 2000; // 2 seconds
-                await new Promise(resolve => setTimeout(resolve, retryDelay));
+                // Use a fixed delay with safety bounds for 503 errors
+                await safeDelay(2000); // 2 seconds
                 return axios(originalRequest);
             }
             return Promise.reject(error);
