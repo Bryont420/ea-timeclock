@@ -197,7 +197,76 @@ module.exports = {
         htmlWebpackPlugin.userOptions.scriptLoading = 'defer';
       }
 
+      // Add sharp-based image optimization
+      webpackConfig.module.rules.push({
+        test: /\.(webp|png|jpe?g)$/i,
+        use: [
+          {
+            loader: 'sharp-loader',
+            options: {
+              name: '[name].[ext]',
+              outputPath: 'static/media/',
+              webp: {
+                quality: 75,
+                lossless: false,
+                force: false
+              },
+              jpeg: {
+                quality: 75,
+                progressive: true
+              },
+              png: {
+                quality: 75,
+                compressionLevel: 9
+              }
+            }
+          }
+        ]
+      });
+
+      // Force newer versions of problematic packages
+      webpackConfig.resolve = webpackConfig.resolve || {};
+      webpackConfig.resolve.alias = {
+        ...webpackConfig.resolve.alias,
+        'nth-check': path.resolve(__dirname, 'node_modules/nth-check'),
+        'postcss': path.resolve(__dirname, 'node_modules/postcss'),
+        'svgo': path.resolve(__dirname, 'node_modules/svgo')
+      };
+
+      // Update SVGO configuration
+      const rules = webpackConfig.module.rules.find(rule => rule.oneOf);
+      if (rules) {
+        const svgLoader = rules.oneOf.find(rule => 
+          rule.test && rule.test.toString().includes('svg')
+        );
+        if (svgLoader) {
+          svgLoader.use = svgLoader.use.map(loader => {
+            if (loader.loader && loader.loader.includes('@svgr/webpack')) {
+              return {
+                ...loader,
+                options: {
+                  ...loader.options,
+                  svgoConfig: {
+                    plugins: [
+                      {
+                        name: 'preset-default',
+                        params: {
+                          overrides: {
+                            removeViewBox: false
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              };
+            }
+            return loader;
+          });
+        }
+      }
+
       return webpackConfig;
-    },
-  },
+    }
+  }
 };

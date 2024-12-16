@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "lib": [
+      "webworker",
+      "es2015",
+      "scripthost"
+    ],
+    "skipLibCheck": true,
+    "isolatedModules": true
+  },
+  "include": [
+    "service-worker.ts"
+  ]
+}
