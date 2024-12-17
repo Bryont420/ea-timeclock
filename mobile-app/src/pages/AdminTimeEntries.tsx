@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Container,
     Typography,
@@ -6,20 +6,18 @@ import {
     Button,
     Alert,
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import PrintIcon from '@mui/icons-material/Print';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import { useAdmin } from '../contexts/AdminContext';
 import { API_ENDPOINTS, API_BASE_URL } from '../config';
 import { generateTimeEntriesPDF } from '../utils/pdfUtils';
 import { TimeEntry, FormData, FilterData } from '../types/timeEntry';
-import { Employee } from '../types/employee';
 import { TimeEntryDialog } from '../components/admin/TimeEntryDialog';
 import { TimeEntriesTable } from '../components/admin/TimeEntriesTable';
 import { TimeEntriesFilter } from '../components/admin/TimeEntriesFilter';
 import { format, parseISO } from 'date-fns';
 import debounce from 'lodash/debounce';
+import { LoadingOverlay } from '../components/common/LoadingOverlay';
 
 const getWorkWeekDates = () => {
     const today = new Date();
@@ -69,9 +67,8 @@ const sortTimeEntries = (entries: TimeEntry[]): TimeEntry[] => {
     });
 };
 
-const MemoizedTimeEntriesTable = memo(TimeEntriesTable);
-const MemoizedTimeEntryDialog = memo(TimeEntryDialog);
-const MemoizedTimeEntriesFilter = memo(TimeEntriesFilter);
+const MemoizedTimeEntryDialog = React.memo(TimeEntryDialog);
+const MemoizedTimeEntriesFilter = React.memo(TimeEntriesFilter);
 
 const validateFilterData = (data: FilterData): string | null => {
     if (data.start_date && data.end_date) {
@@ -98,10 +95,12 @@ const isValidDate = (dateString: string): boolean => {
 export const AdminTimeEntries: React.FC = () => {
     const workWeek = getWorkWeekDates();
     const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
-    const [employees, setEmployees] = useState<Employee[]>([]);
     const [selectedEntry, setSelectedEntry] = useState<TimeEntry | null>(null);
     const [openDialog, setOpenDialog] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [submitting, setSubmitting] = useState(false);
+    const [loading, setLoading] = useState(true);
+
     const [formData, setFormData] = useState<FormData>({
         employee_id: '',
         clock_in_time: '',
@@ -123,8 +122,10 @@ export const AdminTimeEntries: React.FC = () => {
         end_date: workWeek.end
     });
 
+    const [refreshTimeEntries, setRefreshTimeEntries] = useState(false);
+
     const { user } = useAuth();
-    const { setRefreshTimeEntries } = useAdmin();
+    const { employees, setRefreshTimeEntries: setAdminRefreshTimeEntries } = useAdmin();
 
     // Create admin-specific axios instance using useMemo
     const adminAxios = React.useMemo(() => axios.create({
@@ -159,7 +160,8 @@ export const AdminTimeEntries: React.FC = () => {
                 throw new Error('Invalid response format');
             }
             
-            setTimeEntries(sortTimeEntries(response.data));
+            const sortedEntries = sortTimeEntries(response.data);
+            setTimeEntries(sortedEntries);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to fetch time entries';
             setError(errorMessage);
@@ -167,18 +169,8 @@ export const AdminTimeEntries: React.FC = () => {
         }
     }, [appliedFilters, adminAxios]);
 
-    const fetchEmployees = useCallback(async () => {
-        try {
-            const response = await adminAxios.get(API_ENDPOINTS.ADMIN.EMPLOYEES);
-            setEmployees(response.data);
-        } catch (err) {
-            setError('Failed to fetch employees');
-            console.error(err);
-        }
-    }, [adminAxios]);
-
     // Memoize the debounced filter change function
-    const debouncedFilterChange = useMemo(
+    const debouncedFilterChange = React.useMemo(
         () => debounce((field: keyof FilterData, value: any) => {
             setFilterData(prev => ({ ...prev, [field]: value }));
         }, 300),
@@ -199,108 +191,23 @@ export const AdminTimeEntries: React.FC = () => {
         setAppliedFilters(filterData);
     };
 
-    useEffect(() => {
-        fetchTimeEntries();
-    }, [fetchTimeEntries]);
-
-    useEffect(() => {
-        fetchEmployees();
-        
-        if (setRefreshTimeEntries) {
-            setRefreshTimeEntries(fetchTimeEntries);
-        }
-
-        return () => {
-            if (setRefreshTimeEntries) {
-                setRefreshTimeEntries(() => {});  // Set to no-op function instead of null
-            }
-        };
-    }, [fetchEmployees, setRefreshTimeEntries, fetchTimeEntries]);
-
-    const fetchEmployeeStatus = async (employeeId: string): Promise<boolean> => {
-        try {
-            // Find the employee to get their numeric ID
-            const employee = employees.find(emp => emp.employee_id === employeeId);
-            if (!employee) {
-                console.error('Could not find employee with ID:', employeeId);
-                return false;
-            }
-
-            const response = await adminAxios.get(`${API_ENDPOINTS.ADMIN.EMPLOYEES}${employee.id}/`);
-            return response.data.clocked_in;
-        } catch (err) {
-            console.error('Error fetching employee status:', err);
-            return false;
-        }
-    };
-
-    const updateEmployeeStatus = async (employeeId: string, isClocked: boolean) => {
-        try {
-            // Find the employee to get their numeric ID
-            const employee = employees.find(emp => emp.employee_id === employeeId);
-            if (!employee) {
-                console.error('Could not find employee with ID:', employeeId);
-                return;
-            }
-
-            await adminAxios.patch(
-                `${API_ENDPOINTS.ADMIN.EMPLOYEES}${employee.id}/`,
-                { clocked_in: isClocked },
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                }
-            );
-        } catch (err) {
-            console.error('Error updating employee status:', err);
-        }
-    };
-
-    const handleEdit = (entry: TimeEntry) => {
-        // Find the employee by matching the name
-        const employee = employees.find(emp => 
-            `${emp.first_name} ${emp.last_name}` === entry.employee_name
-        );
-
-        if (!employee) {
-            console.error('Could not find matching employee for:', entry.employee_name);
-            setError('Could not find matching employee');
-            return;
-        }
-
-        // Get the latest note if available
-        const latestNote = entry.notes_display.length > 0 
-            ? entry.notes_display[0].note_text 
-            : '';
-
-        setSelectedEntry(entry);
-        setFormData({
-            employee_id: employee.employee_id,
-            clock_in_time: format(parseISO(entry.clock_in_time), "yyyy-MM-dd'T'HH:mm"),
-            clock_out_time: entry.clock_out_time 
-                ? format(parseISO(entry.clock_out_time), "yyyy-MM-dd'T'HH:mm")
-                : '',
-            notes: latestNote,
-            new_note: '',
-            is_clocked_in: !entry.clock_out_time
-        });
-        setOpenDialog(true);
-    };
-
     const handleDelete = async (entry: TimeEntry) => {
         if (window.confirm('Are you sure you want to delete this time entry?')) {
+            setSubmitting(true);
             try {
                 await adminAxios.delete(`${API_ENDPOINTS.ADMIN.TIME_ENTRIES}${entry.id}/`);
-                fetchTimeEntries();
+                handleRefresh();
             } catch (err) {
                 setError('Failed to delete time entry');
                 console.error(err);
+            } finally {
+                setSubmitting(false);
             }
         }
     };
 
     const handleSubmit = async () => {
+        setSubmitting(true);
         try {
             if (selectedEntry) {
                 // For editing
@@ -342,6 +249,7 @@ export const AdminTimeEntries: React.FC = () => {
                 await updateEmployeeStatus(formData.employee_id, formData.is_clocked_in || false);
             }
 
+            // Reset form state
             setOpenDialog(false);
             setSelectedEntry(null);
             setFormData({
@@ -349,12 +257,17 @@ export const AdminTimeEntries: React.FC = () => {
                 clock_in_time: '',
                 clock_out_time: '',
                 notes: '',
+                new_note: '',
                 is_clocked_in: true
             });
-            fetchTimeEntries();
+
+            // Refresh data
+            handleRefresh();
         } catch (err) {
             setError('Failed to save time entry');
             console.error(err);
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -362,8 +275,113 @@ export const AdminTimeEntries: React.FC = () => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
+    const handleRefresh = useCallback(() => {
+        setRefreshTimeEntries(prev => !prev);
+    }, []);
+
+    // Initial data loading
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                setLoading(true);
+                await fetchTimeEntries();
+                
+                // Register the refresh callback with the admin context
+                setAdminRefreshTimeEntries(() => {
+                    setRefreshTimeEntries(prev => !prev);
+                });
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadData();
+    }, [fetchTimeEntries, refreshTimeEntries, setAdminRefreshTimeEntries]);
+
+    const fetchEmployeeStatus = async (employeeId: string): Promise<boolean> => {
+        try {
+            // Find the employee to get their numeric ID
+            const employee = employees.find(emp => emp.employee_id === employeeId);
+            if (!employee) {
+                console.error('Could not find employee with ID:', employeeId);
+                return false;
+            }
+
+            const response = await adminAxios.get(`${API_ENDPOINTS.ADMIN.EMPLOYEES}${employee.id}/`);
+            return response.data.clocked_in;
+        } catch (err) {
+            console.error('Error fetching employee status:', err);
+            return false;
+        }
+    };
+
+    const updateEmployeeStatus = async (employeeId: string, isClocked: boolean) => {
+        try {
+            // Find the employee to get their numeric ID
+            const employee = employees.find(emp => emp.employee_id === employeeId);
+            if (!employee) {
+                console.error('Could not find employee with ID:', employeeId);
+                return;
+            }
+
+            await adminAxios.patch(
+                `${API_ENDPOINTS.ADMIN.EMPLOYEES}${employee.id}/`,
+                { clocked_in: isClocked },
+            );
+        } catch (err) {
+            console.error('Error updating employee status:', err);
+        }
+    };
+
+    const handleEdit = (entry: TimeEntry) => {
+        // Find the employee by matching the name
+        const employee = employees.find(emp => 
+            `${emp.first_name} ${emp.last_name}` === entry.employee_name
+        );
+
+        if (!employee) {
+            console.error('Could not find matching employee for:', entry.employee_name);
+            setError('Could not find matching employee');
+            return;
+        }
+
+        // Get the latest note if available
+        const latestNote = entry.notes_display.length > 0 
+            ? entry.notes_display[0].note_text 
+            : '';
+
+        setSelectedEntry(entry);
+        setFormData({
+            employee_id: employee.employee_id,
+            clock_in_time: format(parseISO(entry.clock_in_time), "yyyy-MM-dd'T'HH:mm"),
+            clock_out_time: entry.clock_out_time 
+                ? format(parseISO(entry.clock_out_time), "yyyy-MM-dd'T'HH:mm")
+                : '',
+            notes: latestNote,
+            new_note: '',
+            is_clocked_in: !entry.clock_out_time
+        });
+        setOpenDialog(true);
+    };
+
+    const handleCloseDialog = () => {
+        setOpenDialog(false);
+        setSelectedEntry(null);
+        setFormData({
+            employee_id: '',
+            clock_in_time: '',
+            clock_out_time: '',
+            notes: '',
+            new_note: '',
+            is_clocked_in: true
+        });
+        setError(null);
+    };
+
     return (
-        <Container maxWidth="xl" sx={{ color: 'text.primary' }}>
+        <Container maxWidth="xl" sx={{ mt: 4, color: 'text.primary' }}>
+            <LoadingOverlay open={submitting || loading} />
             <Box sx={{ my: 4 }}>
                 <Typography variant="h4" component="h1" gutterBottom sx={{ color: 'text.primary' }}>
                     Time Entries
@@ -378,14 +396,12 @@ export const AdminTimeEntries: React.FC = () => {
                 <Box sx={{ mb: 2, display: 'flex', gap: 2 }}>
                     <Button
                         variant="contained"
-                        startIcon={<AddIcon />}
                         onClick={() => setOpenDialog(true)}
                     >
                         Add Entry
                     </Button>
                     <Button
                         variant="contained"
-                        startIcon={<PrintIcon />}
                         onClick={() => generateTimeEntriesPDF(timeEntries)}
                     >
                         Export PDF
@@ -393,13 +409,13 @@ export const AdminTimeEntries: React.FC = () => {
                 </Box>
 
                 <MemoizedTimeEntriesFilter
-                    filterData={filterData}
                     employees={employees}
                     onFilterChange={handleFilterChange}
+                    filterData={filterData}
                     onApplyFilter={handleApplyFilter}
                 />
 
-                <MemoizedTimeEntriesTable
+                <TimeEntriesTable
                     timeEntries={timeEntries}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
@@ -407,24 +423,14 @@ export const AdminTimeEntries: React.FC = () => {
 
                 <MemoizedTimeEntryDialog
                     open={openDialog}
-                    onClose={() => {
-                        setOpenDialog(false);
-                        setSelectedEntry(null);
-                        setFormData({
-                            employee_id: '',
-                            clock_in_time: '',
-                            clock_out_time: '',
-                            notes: '',
-                            is_clocked_in: true
-                        });
-                        setError(null);
-                    }}
+                    onClose={handleCloseDialog}
                     selectedEntry={selectedEntry}
                     formData={formData}
                     onFormChange={handleFormChange}
                     onSubmit={handleSubmit}
                     error={error}
                     employees={employees}
+                    submitting={submitting}
                 />
             </Box>
         </Container>

@@ -101,7 +101,7 @@ export const updateTimeOffRequest = async (
     try {
         const response = await axiosInstance.put<TimeOffRequest>(
             API_ENDPOINTS.TIME_OFF.DETAIL(id),
-            request
+            { ...request, update_type: 'modify' }
         );
         return response.data;
     } catch (error) {

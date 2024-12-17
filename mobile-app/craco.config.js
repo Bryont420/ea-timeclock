@@ -20,10 +20,10 @@ module.exports = {
         webpackConfig.optimization.providedExports = true;
 
         webpackConfig.optimization.splitChunks = {
-          chunks: 'async',
-          minSize: 30000,
-          maxSize: 150000,
-          minChunks: 2,
+          chunks: 'all',
+          minSize: 20000,
+          maxSize: 120000,
+          minChunks: 1,
           maxAsyncRequests: 15,
           maxInitialRequests: 6,
           automaticNameDelimiter: '-',
@@ -187,7 +187,7 @@ module.exports = {
       // Configure script loading and cross-origin settings
       webpackConfig.output.crossOriginLoading = 'anonymous';
 
-      // Modify HTMLWebpackPlugin to configure script loading
+      // Modify HTMLWebpackPlugin to configure script and style loading
       const htmlWebpackPlugin = webpackConfig.plugins.find(
         plugin => plugin.constructor.name === 'HtmlWebpackPlugin'
       );
@@ -195,6 +195,20 @@ module.exports = {
       if (htmlWebpackPlugin) {
         htmlWebpackPlugin.userOptions.inject = 'body';
         htmlWebpackPlugin.userOptions.scriptLoading = 'defer';
+        
+        // Add preload hints for CSS using template syntax
+        const cssFiles = webpackConfig.plugins
+          .find(plugin => plugin.constructor.name === 'MiniCssExtractPlugin')
+          ?.options?.filename || 'static/css/[name].[contenthash:8].css';
+          
+        htmlWebpackPlugin.userOptions.links = [
+          {
+            rel: 'preload',
+            as: 'style',
+            href: cssFiles,
+            type: 'text/css'
+          }
+        ];
       }
 
       // Add sharp-based image optimization

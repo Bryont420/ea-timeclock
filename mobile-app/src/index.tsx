@@ -72,6 +72,39 @@ if (!container) {
   throw new Error('Failed to find root element');
 }
 
+// Register service worker for PWA functionality
+serviceWorkerRegistration.register({
+  onUpdate: registration => {
+    // When a new version is available, notify the user
+    const updateNotification = document.createElement('div');
+    updateNotification.className = 'update-notification';
+    updateNotification.style.cssText = `
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      background: #2196F3;
+      color: white;
+      padding: 16px;
+      border-radius: 4px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      z-index: 10000;
+    `;
+    updateNotification.innerHTML = `
+      <p style="margin: 0 0 8px 0">A new version is available!</p>
+      <button onclick="window.location.reload()" 
+              style="background: white; color: #2196F3; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer">
+        Update Now
+      </button>
+    `;
+    document.body.appendChild(updateNotification);
+
+    // Activate the new service worker when user clicks update
+    if (registration.waiting) {
+      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+    }
+  }
+});
+
 const root = ReactDOM.createRoot(container);
 
 // Render app with error boundary
@@ -89,15 +122,3 @@ reportWebVitals(sendToAnalytics);
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
 // Learn more about service workers: https://cra.link/PWA
-serviceWorkerRegistration.register({
-  onUpdate: registration => {
-    // When there's an update, show the update notification
-    const updateNotification = document.createElement('div');
-    updateNotification.className = 'update-notification';
-    updateNotification.innerHTML = `
-      <p>A new version of the app is available!</p>
-      <button onclick="window.location.reload()">Update Now</button>
-    `;
-    document.body.appendChild(updateNotification);
-  }
-});

@@ -10,7 +10,6 @@ import {
   TableRow,
   Typography,
   Chip,
-  CircularProgress,
   Alert,
   Dialog,
   Button,
@@ -25,6 +24,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { getTimeOffRequests, TimeOffRequest, deleteTimeOffRequest } from '../../services/timeoff';
 import { TimeOffRequestForm } from './TimeOffRequestForm';
+import { LoadingOverlay } from '../common/LoadingOverlay';
+import { LoadingSpinner } from '../common/LoadingSpinner';
 
 export interface TimeOffRequestListRef {
   refreshList: () => void;
@@ -32,7 +33,7 @@ export interface TimeOffRequestListRef {
 
 const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
   const [requests, setRequests] = useState<TimeOffRequest[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [editingRequest, setEditingRequest] = useState<TimeOffRequest | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -41,6 +42,7 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
   const isMobile = useMediaQuery('(max-width:600px)');
 
   const fetchRequests = async () => {
+    setLoading(true);
     try {
       const data = await getTimeOffRequests();
       setRequests(Array.isArray(data) ? data : []);
@@ -57,6 +59,10 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
     refreshList: fetchRequests
   }));
 
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
   const filterRequests = (requests: TimeOffRequest[]) => {
     const today = startOfToday();
     return requests.filter(request => {
@@ -65,23 +71,31 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
     });
   };
 
-  useEffect(() => {
-    fetchRequests();
-  }, []);
-
   const handleEdit = (request: TimeOffRequest) => {
     setEditingRequest(request);
     setShowEditDialog(true);
   };
 
+  const handleEditSuccess = async () => {
+    setShowEditDialog(false);
+    setEditingRequest(null);
+    await fetchRequests(); // Refresh the list after successful edit
+  };
+
   const handleDelete = async (request: TimeOffRequest) => {
     if (window.confirm('Are you sure you want to delete this request?')) {
+      setLoading(true);
       try {
         await deleteTimeOffRequest(request.id);
+        // Immediately update local state
+        setRequests(prevRequests => prevRequests.filter(r => r.id !== request.id));
+        // Then fetch fresh data
         await fetchRequests();
       } catch (err: any) {
         console.error('Error deleting request:', err);
         setError(err.response?.data?.error || 'Failed to delete request');
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -127,11 +141,7 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
   };
 
   if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" p={3}>
-        <CircularProgress />
-      </Box>
-    );
+    return <LoadingSpinner />;
   }
 
   if (error) {
@@ -198,6 +208,7 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
 
   return (
     <Box sx={{ color: 'text.primary' }}>
+      <LoadingOverlay open={loading} />
       {isMobile ? (
         <Box>
           <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
@@ -228,6 +239,7 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
                         color="primary"
                         startIcon={<EditIcon />}
                         onClick={() => handleEdit(request)}
+                        disabled={loading}
                       >
                         Edit
                       </Button>
@@ -236,6 +248,7 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
                         color="secondary"
                         startIcon={<DeleteIcon />}
                         onClick={() => handleDelete(request)}
+                        disabled={loading}
                       >
                         Delete
                       </Button>
@@ -300,6 +313,8 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
                             color="primary"
                             startIcon={<EditIcon />}
                             onClick={() => handleEdit(request)}
+                            disabled={loading}
+                            sx={{ mr: 1 }}
                           >
                             Edit
                           </Button>
@@ -308,6 +323,8 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
                             color="secondary"
                             startIcon={<DeleteIcon />}
                             onClick={() => handleDelete(request)}
+                            disabled={loading}
+                            sx={{ ml: 1 }}
                           >
                             Delete
                           </Button>
@@ -330,10 +347,7 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
         {editingRequest && (
           <TimeOffRequestForm
             initialRequest={editingRequest}
-            onSubmit={() => {
-              setShowEditDialog(false);
-              fetchRequests();
-            }}
+            onSubmit={handleEditSuccess}
             onClose={() => setShowEditDialog(false)}
             isDialog
           />

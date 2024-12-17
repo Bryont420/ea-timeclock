@@ -4,12 +4,22 @@
  * data refreshes without direct coupling to the data fetching logic.
  */
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { API_ENDPOINTS } from '../config';
+import { useAuth } from './AuthContext';
+import { Employee } from '../types/employee';
+import { axiosInstance } from '../utils/axios';
 
 /**
  * Interface defining the shape of the AdminContext.
  */
 export interface AdminContextType {
+    /** List of all employees */
+    employees: Employee[];
+    /** Loading state for employees */
+    employeesLoading: boolean;
+    /** Error state for employees */
+    employeesError: string | null;
     /** Callback to refresh employees data */
     refreshEmployees: () => void;
     /** Function to set the employees refresh callback */
@@ -22,6 +32,9 @@ export interface AdminContextType {
 
 /** Admin context with default values */
 const AdminContext = createContext<AdminContextType>({
+    employees: [],
+    employeesLoading: false,
+    employeesError: null,
     refreshEmployees: () => {},
     setRefreshEmployees: () => {},
     refreshTimeEntries: () => {},
@@ -33,8 +46,37 @@ const AdminContext = createContext<AdminContextType>({
  * It manages the state of the refresh callbacks for employees and time entries data.
  */
 export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [employees, setEmployees] = useState<Employee[]>([]);
+    const [employeesLoading, setEmployeesLoading] = useState(false);
+    const [employeesError, setEmployeesError] = useState<string | null>(null);
     const [refreshEmployees, setRefreshEmployeesState] = useState<() => void>(() => {});
     const [refreshTimeEntries, setRefreshTimeEntriesState] = useState<() => void>(() => {});
+    const { user } = useAuth();
+
+    const fetchEmployees = useCallback(async () => {
+        if (!user?.is_staff) return;
+        
+        try {
+            setEmployeesLoading(true);
+            setEmployeesError(null);
+            const response = await axiosInstance.get<Employee[]>(API_ENDPOINTS.ADMIN.EMPLOYEES);
+            if (!response.data) throw new Error('Failed to fetch employees');
+            setEmployees(response.data);
+        } catch (err) {
+            console.error('Failed to load employees:', err);
+            setEmployeesError('Failed to load employees');
+            setEmployees([]);
+        } finally {
+            setEmployeesLoading(false);
+        }
+    }, [user?.is_staff]);
+
+    // Fetch employees when the admin user logs in
+    useEffect(() => {
+        if (user?.is_staff) {
+            fetchEmployees();
+        }
+    }, [user?.is_staff, fetchEmployees]);
 
     /**
      * Memoized function to set the employees refresh callback.
@@ -55,6 +97,9 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return (
         <AdminContext.Provider
             value={{
+                employees,
+                employeesLoading,
+                employeesError,
                 refreshEmployees,
                 setRefreshEmployees,
                 refreshTimeEntries,
