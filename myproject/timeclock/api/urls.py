@@ -19,7 +19,7 @@ from .views.auth_views import logout_view, change_password
 from .views import theme_views
 from .views.email_update_view import EmailUpdateView
 from .views.password_reset import request_password_reset, reset_password
-from .views.biometric_views import BiometricLoginView, BiometricRegistrationView
+from .views.biometric_views import BiometricLoginView, BiometricRegistrationView, BiometricVerifyView
 
 router = routers.DefaultRouter()
 router.register(r'time-off-requests', TimeOffRequestViewSet, basename='time-off-request')
@@ -46,5 +46,6 @@ urlpatterns = [
     # Biometric Authentication
     path('auth/biometric-login/', BiometricLoginView.as_view(), name='biometric-login'),
     path('auth/biometric-register/', BiometricRegistrationView.as_view(), name='biometric-register'),
+    path('auth/biometric-verify/', BiometricVerifyView.as_view(), name='biometric-verify'),
     path('auth/change-password/', change_password, name='change_password'),
 ] + router.urls

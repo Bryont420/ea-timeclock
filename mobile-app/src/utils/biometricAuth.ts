@@ -261,18 +261,53 @@ export const registerBiometric = async (username: string): Promise<string> => {
 };
 
 // Verify biometric credentials
-export const verifyBiometric = async (username: string): Promise<{ verified: boolean, credential: any }> => {
+export const verifyBiometric = async (username: string): Promise<{ verified: boolean, credential: any, needsReregistration?: boolean }> => {
     try {
         const storedCredential = getStoredCredential(username);
         if (!storedCredential) {
             console.error('No stored biometric credentials found for user:', username);
-            throw new Error('No biometric credentials found. Please register your fingerprint again.');
+            return {
+                verified: false,
+                credential: null,
+                needsReregistration: true
+            };
         }
 
         // Verify we have all required data
         if (!storedCredential.publicKey || !storedCredential.clientData || !storedCredential.attestationObject) {
             console.error('Incomplete credential data stored');
-            throw new Error('Incomplete biometric data. Please register your fingerprint again.');
+            removeBiometric(username); // Only remove this specific user's credentials
+            return {
+                verified: false,
+                credential: null,
+                needsReregistration: true
+            };
+        }
+
+        // Verify the credential exists in the backend
+        try {
+            const response = await axiosInstance.post('/api/auth/biometric-verify/', {
+                username,
+                credential_id: storedCredential.id
+            });
+            
+            if (!response.data?.valid) {
+                // If the credential doesn't exist in the backend, remove only this user's credentials
+                removeBiometric(username);
+                return {
+                    verified: false,
+                    credential: null,
+                    needsReregistration: true
+                };
+            }
+        } catch (error) {
+            // If there's any error verifying with the backend, remove only this user's credentials
+            removeBiometric(username);
+            return {
+                verified: false,
+                credential: null,
+                needsReregistration: true
+            };
         }
 
         const challenge = new Uint8Array(32);
@@ -301,7 +336,11 @@ export const verifyBiometric = async (username: string): Promise<{ verified: boo
         ]) as PublicKeyCredential;
 
         if (!assertion || !assertion.response) {
-            throw new Error('Biometric verification failed - no response received');
+            return {
+                verified: false,
+                credential: null,
+                needsReregistration: false // Don't need re-registration, just failed verification
+            };
         }
 
         // Get the response data
@@ -314,7 +353,11 @@ export const verifyBiometric = async (username: string): Promise<{ verified: boo
 
         // Verify we have all required data
         if (!clientData || !authenticatorData || !signature) {
-            throw new Error('Missing required verification data');
+            return {
+                verified: false,
+                credential: null,
+                needsReregistration: false // Don't need re-registration, just failed verification
+            };
         }
 
         return {
@@ -323,17 +366,25 @@ export const verifyBiometric = async (username: string): Promise<{ verified: boo
                 clientData,
                 authenticatorData,
                 signature,
-                publicKey: storedCredential.publicKey // Include stored public key
-            }
+                publicKey: storedCredential.publicKey
+            },
+            needsReregistration: false
         };
     } catch (error) {
         if (error instanceof Error) {
             if (error.message.includes('timeout')) {
-                throw new Error('Fingerprint verification timed out. Please try again.');
+                return {
+                    verified: false,
+                    credential: null,
+                    needsReregistration: false // Don't need re-registration on timeout
+                };
             }
-            throw error;
         }
-        throw new Error('Biometric verification failed. Please try again.');
+        return {
+            verified: false,
+            credential: null,
+            needsReregistration: false
+        };
     }
 };
 
