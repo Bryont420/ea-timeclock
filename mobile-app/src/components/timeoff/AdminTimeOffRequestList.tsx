@@ -32,8 +32,10 @@ import {
 } from '@mui/material';
 import { format, parseISO } from 'date-fns';
 import { getTimeOffRequests, TimeOffRequest, reviewTimeOffRequest } from '../../services/timeoff';
+import { useAdmin } from '../../contexts/AdminContext';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import { LoadingOverlay } from '../common/LoadingOverlay';
 
 /**
  * AdminTimeOffRequestList component that manages and displays time off requests.
@@ -69,17 +71,22 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
  */
 const AdminTimeOffRequestList: React.FC = () => {
   const [requests, setRequests] = useState<TimeOffRequest[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [processingRequests, setProcessingRequests] = useState<{ [key: string]: boolean }>({});
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [reviewNotes, setReviewNotes] = useState('');
   const [selectedRequest, setSelectedRequest] = useState<TimeOffRequest | null>(null);
-  const [showReviewDialog, setShowReviewDialog] = useState(false);
+  const [processingRequests] = useState<{ [key: string]: boolean }>({});
+  const [dialogProcessing, setDialogProcessing] = useState(false);
+  const [reviewNotes, setReviewNotes] = useState('');
   const [reviewAction, setReviewAction] = useState<'approved' | 'denied' | null>(null);
   const [showProcessedRequests, setShowProcessedRequests] = useState(false);
-  const [dialogProcessing, setDialogProcessing] = useState(false);
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
 
+  const { setRefreshTimeEntries } = useAdmin();
   const isMobile = useMediaQuery('(max-width:600px)');
+
+  const filteredRequests = requests.filter(request => {
+    return showProcessedRequests || request.status === 'pending';
+  });
 
   /**
    * Fetches time off requests from the API.
@@ -88,6 +95,7 @@ const AdminTimeOffRequestList: React.FC = () => {
    * @function fetchRequests
    */
   const fetchRequests = async () => {
+    setLoading(true);
     try {
       const data = await getTimeOffRequests();
       setRequests(Array.isArray(data) ? data : []);
@@ -99,10 +107,6 @@ const AdminTimeOffRequestList: React.FC = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchRequests();
-  }, []);
 
   /**
    * Handles the review click event for a time off request.
@@ -124,30 +128,29 @@ const AdminTimeOffRequestList: React.FC = () => {
    * @function handleReviewSubmit
    */
   const handleReviewSubmit = async () => {
-    if (!selectedRequest || !reviewAction || dialogProcessing) return;
+    if (!selectedRequest || !reviewAction) return;
 
+    setDialogProcessing(true);
     try {
-      setDialogProcessing(true);
-      setProcessingRequests(prev => ({ ...prev, [selectedRequest.id]: true }));
-      
       await reviewTimeOffRequest(
         selectedRequest.id,
         reviewAction === 'approved' ? 'approve' : 'deny',
         reviewNotes
       );
-      
-      // Update the request in the local state instead of fetching all requests
+
+      // Immediately update the local state
       setRequests(prevRequests => 
-        prevRequests.map(request => 
-          request.id === selectedRequest.id 
-            ? { 
-                ...request, 
-                status: reviewAction === 'approved' ? 'approved' : 'denied',
-                status_display: reviewAction === 'approved' ? 'Approved' : 'Denied'
-              }
-            : request
+        prevRequests.map(req => 
+          req.id === selectedRequest.id 
+            ? { ...req, status: reviewAction, review_notes: reviewNotes }
+            : req
         )
       );
+
+      // Then fetch fresh data
+      await fetchRequests();
+      // Refresh time entries in case the request affects them
+      setRefreshTimeEntries(() => {});
       
       setShowReviewDialog(false);
       setReviewNotes('');
@@ -158,11 +161,6 @@ const AdminTimeOffRequestList: React.FC = () => {
       setError(err.response?.data?.error || 'Failed to review request');
     } finally {
       setDialogProcessing(false);
-      setProcessingRequests(prev => {
-        const newState = { ...prev };
-        delete newState[selectedRequest.id];
-        return newState;
-      });
     }
   };
 
@@ -223,67 +221,29 @@ const AdminTimeOffRequestList: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  useEffect(() => {
+    fetchRequests();
+  }, []);
 
-  if (error) {
-    return (
-      <Alert severity="error" sx={{ mt: 2 }}>
-        {error}
-      </Alert>
-    );
-  }
-
-  const filteredRequests = requests.filter(request => {
-    return showProcessedRequests || request.status === 'pending';
-  });
-
-  if (!filteredRequests.length) {
-    return (
-      <>
-        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => setShowProcessedRequests(!showProcessedRequests)}
-            startIcon={showProcessedRequests ? <VisibilityOffIcon /> : <VisibilityIcon />}
-          >
-            {showProcessedRequests ? 'Hide Processed Requests' : 'Show Processed Requests'}
-          </Button>
-        </Box>
-        <Paper 
-          elevation={2} 
-          sx={{ 
-            p: 4, 
-            textAlign: 'center',
-            borderRadius: 2
-          }}
-        >
-          <Typography variant="h5" gutterBottom>
-            No Time Off Requests
-          </Typography>
-          <Typography variant="body1" sx={{ mb: 2 }}>
-            {showProcessedRequests 
-              ? "There are no time off requests in the system."
-              : "There are no pending time off requests to review."}
-          </Typography>
-          <Typography variant="body2">
-            {showProcessedRequests 
-              ? "Time off requests will appear here when employees submit them."
-              : "Click 'Show Processed Requests' above to view previous requests."}
-          </Typography>
-        </Paper>
-      </>
-    );
-  }
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        await fetchRequests();
+      } catch (err) {
+        console.error('Error loading time-off requests:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   return (
-    <>
+    <Box>
+      <LoadingOverlay open={loading || dialogProcessing} />
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+
       <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
         <Button
           variant="contained"
@@ -295,142 +255,169 @@ const AdminTimeOffRequestList: React.FC = () => {
         </Button>
       </Box>
 
-      {isMobile ? (
-        <Box>
-          {filteredRequests.map((request) => (
-            <Card key={request.id} sx={{ mb: 2 }}>
-              <CardContent>
-                <Typography variant="h6">{request.employee_name}</Typography>
-                <Typography variant="body2">
-                  Type: {request.request_type_display || request.request_type}
-                </Typography>
-                <Typography variant="body2">
-                  Start Date: {formatDate(request.start_date)}
-                </Typography>
-                <Typography variant="body2">
-                  End Date: {formatDate(request.end_date)}
-                </Typography>
-                <Typography variant="body2">
-                  Hours: {request.hours_requested}
-                </Typography>
-                <Typography variant="body2">
-                  Status: <Chip
-                    label={request.status_display || request.status}
-                    color={getStatusColor(request.status)}
-                    size="small"
-                  />
-                </Typography>
-                <Typography variant="body2">
-                  Reason: {request.reason}
-                </Typography>
-                {request.status === 'pending' && (
-                  <Box>
-                    <Button
-                      size="small"
-                      color="success"
-                      onClick={() => handleReviewClick(request, 'approved')}
-                      sx={{ mr: 1 }}
-                      disabled={processingRequests[request.id]}
-                    >
-                      {processingRequests[request.id] ? (
-                        <CircularProgress size={20} color="inherit" />
-                      ) : (
-                        'Approve'
-                      )}
-                    </Button>
-                    <Button
-                      size="small"
-                      color="error"
-                      onClick={() => handleReviewClick(request, 'denied')}
-                      disabled={processingRequests[request.id]}
-                    >
-                      {processingRequests[request.id] ? (
-                        <CircularProgress size={20} color="inherit" />
-                      ) : (
-                        'Deny'
-                      )}
-                    </Button>
-                  </Box>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </Box>
+      {filteredRequests.length === 0 ? (
+        <>
+          <Paper 
+            elevation={2} 
+            sx={{ 
+              p: 4, 
+              textAlign: 'center',
+              borderRadius: 2
+            }}
+          >
+            <Typography variant="h5" gutterBottom>
+              No Time Off Requests
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              {showProcessedRequests 
+                ? "There are no time off requests in the system."
+                : "There are no pending time off requests to review."}
+            </Typography>
+            <Typography variant="body2">
+              {showProcessedRequests 
+                ? "Time off requests will appear here when employees submit them."
+                : "Click 'Show Processed Requests' above to view previous requests."}
+            </Typography>
+          </Paper>
+        </>
       ) : (
-        <TableContainer component={Paper} sx={{ backgroundColor: 'background.paper', color: 'text.primary' }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Employee</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Start Date</TableCell>
-                <TableCell>End Date</TableCell>
-                <TableCell>Hours</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Reason</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredRequests.map((request) => (
-                <TableRow key={request.id}>
-                  <TableCell>
-                    {request.employee_name || 'Unknown'}
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={request.request_type_display || request.request_type}
-                      color={getRequestTypeColor(request.request_type)}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>{formatDate(request.start_date)}</TableCell>
-                  <TableCell>{formatDate(request.end_date)}</TableCell>
-                  <TableCell>{request.hours_requested}</TableCell>
-                  <TableCell>
-                    <Chip
+        isMobile ? (
+          <Box>
+            {filteredRequests.map((request) => (
+              <Card key={request.id} sx={{ mb: 2 }}>
+                <CardContent>
+                  <Typography variant="h6">{request.employee_name}</Typography>
+                  <Typography variant="body2">
+                    Type: {request.request_type_display || request.request_type}
+                  </Typography>
+                  <Typography variant="body2">
+                    Start Date: {formatDate(request.start_date)}
+                  </Typography>
+                  <Typography variant="body2">
+                    End Date: {formatDate(request.end_date)}
+                  </Typography>
+                  <Typography variant="body2">
+                    Hours: {request.hours_requested}
+                  </Typography>
+                  <Typography variant="body2">
+                    Status: <Chip
                       label={request.status_display || request.status}
                       color={getStatusColor(request.status)}
                       size="small"
                     />
-                  </TableCell>
-                  <TableCell>{request.reason}</TableCell>
-                  <TableCell>
-                    {request.status === 'pending' && (
-                      <Box>
-                        <Button
-                          size="small"
-                          color="success"
-                          onClick={() => handleReviewClick(request, 'approved')}
-                          sx={{ mr: 1 }}
-                          disabled={processingRequests[request.id]}
-                        >
-                          {processingRequests[request.id] ? (
-                            <CircularProgress size={20} color="inherit" />
-                          ) : (
-                            'Approve'
-                          )}
-                        </Button>
-                        <Button
-                          size="small"
-                          color="error"
-                          onClick={() => handleReviewClick(request, 'denied')}
-                          disabled={processingRequests[request.id]}
-                        >
-                          {processingRequests[request.id] ? (
-                            <CircularProgress size={20} color="inherit" />
-                          ) : (
-                            'Deny'
-                          )}
-                        </Button>
-                      </Box>
-                    )}
-                  </TableCell>
+                  </Typography>
+                  <Typography variant="body2">
+                    Reason: {request.reason}
+                  </Typography>
+                  {request.status === 'pending' && (
+                    <Box>
+                      <Button
+                        size="small"
+                        color="success"
+                        onClick={() => handleReviewClick(request, 'approved')}
+                        sx={{ mr: 1 }}
+                        disabled={processingRequests[request.id]}
+                      >
+                        {processingRequests[request.id] ? (
+                          <CircularProgress size={20} color="inherit" />
+                        ) : (
+                          'Approve'
+                        )}
+                      </Button>
+                      <Button
+                        size="small"
+                        color="error"
+                        onClick={() => handleReviewClick(request, 'denied')}
+                        disabled={processingRequests[request.id]}
+                      >
+                        {processingRequests[request.id] ? (
+                          <CircularProgress size={20} color="inherit" />
+                        ) : (
+                          'Deny'
+                        )}
+                      </Button>
+                    </Box>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </Box>
+        ) : (
+          <TableContainer component={Paper} sx={{ backgroundColor: 'background.paper', color: 'text.primary' }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Employee</TableCell>
+                  <TableCell>Type</TableCell>
+                  <TableCell>Start Date</TableCell>
+                  <TableCell>End Date</TableCell>
+                  <TableCell>Hours</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Reason</TableCell>
+                  <TableCell>Actions</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {filteredRequests.map((request) => (
+                  <TableRow key={request.id}>
+                    <TableCell>
+                      {request.employee_name || 'Unknown'}
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={request.request_type_display || request.request_type}
+                        color={getRequestTypeColor(request.request_type)}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>{formatDate(request.start_date)}</TableCell>
+                    <TableCell>{formatDate(request.end_date)}</TableCell>
+                    <TableCell>{request.hours_requested}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={request.status_display || request.status}
+                        color={getStatusColor(request.status)}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>{request.reason}</TableCell>
+                    <TableCell>
+                      {request.status === 'pending' && (
+                        <Box>
+                          <Button
+                            size="small"
+                            color="success"
+                            onClick={() => handleReviewClick(request, 'approved')}
+                            sx={{ mr: 1 }}
+                            disabled={processingRequests[request.id]}
+                          >
+                            {processingRequests[request.id] ? (
+                              <CircularProgress size={20} color="inherit" />
+                            ) : (
+                              'Approve'
+                            )}
+                          </Button>
+                          <Button
+                            size="small"
+                            color="error"
+                            onClick={() => handleReviewClick(request, 'denied')}
+                            disabled={processingRequests[request.id]}
+                          >
+                            {processingRequests[request.id] ? (
+                              <CircularProgress size={20} color="inherit" />
+                            ) : (
+                              'Deny'
+                            )}
+                          </Button>
+                        </Box>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )
       )}
 
       <Dialog
@@ -487,8 +474,9 @@ const AdminTimeOffRequestList: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </>
+    </Box>
   );
+
 };
 
 export default AdminTimeOffRequestList;

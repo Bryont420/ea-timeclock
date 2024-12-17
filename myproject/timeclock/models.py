@@ -168,10 +168,21 @@ class TimeEntry(models.Model):
     def delete(self, *args, **kwargs):
         employee = Employee.objects.select_for_update().get(pk=self.employee.pk)
     
+        # Update vacation/sick hours if applicable
         if self.is_vacation:
             employee.vacation_hours_used = F('vacation_hours_used') - self.hours_worked
         if self.is_sick:
             employee.sick_hours_used = F('sick_hours_used') - self.hours_worked
+            
+        # Only update clocked_in status if this is today's entry and has no clock_out_time
+        current_time = timezone.localtime()
+        start_of_day = current_time.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_of_day = start_of_day + timedelta(days=1)
+        
+        if (self.clock_in_time >= start_of_day and 
+            self.clock_in_time < end_of_day and 
+            not self.clock_out_time):
+            employee.clocked_in = False
     
         employee.save()
         super().delete(*args, **kwargs)

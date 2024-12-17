@@ -23,6 +23,7 @@ import {
 } from '@mui/material';
 import { TimeEntry, FormData } from '../../types/timeEntry';
 import { Employee } from '../../types/employee';
+import { DialogLoadingOverlay } from '../common/DialogLoadingOverlay';
 
 /**
  * Props interface for the TimeEntryDialog component.
@@ -44,6 +45,8 @@ interface TimeEntryDialogProps {
     error: string | null;
     /** Array of employees for the employee selection dropdown */
     employees: Employee[];
+    /** Whether the form is currently submitting */
+    submitting?: boolean;
 }
 
 /**
@@ -66,6 +69,7 @@ interface TimeEntryDialogProps {
  * @param props.onSubmit - Submit handler
  * @param props.error - Error message
  * @param props.employees - Available employees
+ * @param props.submitting - Whether the form is currently submitting
  * @returns The time entry dialog component
  */
 export const TimeEntryDialog: React.FC<TimeEntryDialogProps> = ({
@@ -76,7 +80,8 @@ export const TimeEntryDialog: React.FC<TimeEntryDialogProps> = ({
     onFormChange,
     onSubmit,
     error,
-    employees
+    employees,
+    submitting = false,
 }) => {
     return (
         <Dialog 
@@ -88,7 +93,8 @@ export const TimeEntryDialog: React.FC<TimeEntryDialogProps> = ({
             <DialogTitle sx={{ backgroundColor: 'background.paper', color: 'text.primary' }}>
                 {selectedEntry ? 'Edit Time Entry' : 'Add Time Entry'}
             </DialogTitle>
-            <DialogContent sx={{ color: 'text.primary' }}>
+            <DialogContent sx={{ position: 'relative', minHeight: '300px', color: 'text.primary' }}>
+                <DialogLoadingOverlay open={submitting} />
                 {error && (
                     <Alert severity="error" sx={{ mb: 2, color: 'error.contrastText' }}>
                         {error}
@@ -102,6 +108,7 @@ export const TimeEntryDialog: React.FC<TimeEntryDialogProps> = ({
                             label="Employee"
                             onChange={(e) => onFormChange('employee_id', e.target.value)}
                             required
+                            disabled={submitting}
                         >
                             {employees.map((employee) => (
                                 <MenuItem key={employee.id} value={employee.employee_id}>
@@ -119,6 +126,7 @@ export const TimeEntryDialog: React.FC<TimeEntryDialogProps> = ({
                         InputLabelProps={{ shrink: true }}
                         required
                         fullWidth
+                        disabled={submitting}
                     />
 
                     <FormControlLabel
@@ -126,6 +134,7 @@ export const TimeEntryDialog: React.FC<TimeEntryDialogProps> = ({
                             <Checkbox
                                 checked={formData.is_clocked_in}
                                 onChange={(e) => onFormChange('is_clocked_in', e.target.checked)}
+                                disabled={submitting}
                             />
                         }
                         label="Still Clocked In"
@@ -141,6 +150,7 @@ export const TimeEntryDialog: React.FC<TimeEntryDialogProps> = ({
                             InputLabelProps={{ shrink: true }}
                             required
                             fullWidth
+                            disabled={submitting}
                         />
                     )}
 
@@ -170,6 +180,7 @@ export const TimeEntryDialog: React.FC<TimeEntryDialogProps> = ({
                         )}
                         fullWidth
                         required
+                        disabled={submitting}
                         error={selectedEntry ? !formData.new_note : !formData.notes}
                         helperText={(selectedEntry ? !formData.new_note : !formData.notes) ? "Note is required" : ""}
                         placeholder={selectedEntry ? "Enter a new note for this edit" : "Enter notes"}
@@ -177,8 +188,13 @@ export const TimeEntryDialog: React.FC<TimeEntryDialogProps> = ({
                 </Box>
             </DialogContent>
             <DialogActions sx={{ color: 'text.primary' }}>
-                <Button onClick={onClose}>Cancel</Button>
-                <Button onClick={onSubmit} variant="contained" color="primary">
+                <Button onClick={onClose} disabled={submitting}>Cancel</Button>
+                <Button 
+                    onClick={onSubmit} 
+                    variant="contained" 
+                    color="primary"
+                    disabled={submitting}
+                >
                     {selectedEntry ? 'Save Changes' : 'Add Entry'}
                 </Button>
             </DialogActions>

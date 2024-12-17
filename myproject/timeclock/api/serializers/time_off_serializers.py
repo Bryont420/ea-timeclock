@@ -107,19 +107,15 @@ class TimeOffRequestSerializer(serializers.ModelSerializer):
             })
 
         # Check for overlapping requests for the same employee
-        overlapping_query = {
-            'employee': employee,
-            'status__in': ['pending', 'approved'],
-        }
-
-        if instance:
-            overlapping_query['id__ne'] = instance.id
-
         overlapping = TimeOffRequest.objects.filter(
-            **overlapping_query,
+            employee=employee,
+            status__in=['pending', 'approved'],
             start_date__lte=end_date,
             end_date__gte=start_date
         )
+
+        if instance:
+            overlapping = overlapping.exclude(id=instance.id)
 
         if is_partial_day:
             overlapping = overlapping.filter(

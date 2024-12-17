@@ -53,7 +53,7 @@ export interface TimeEntriesResponse {
 
 let cachedEmployeeInfo: EmployeeInfo | null = null;
 let lastFetchTime = 0;
-const CACHE_DURATION = 60000; // 1 minute cache
+const CACHE_DURATION = 3600000; // 1 hour cache
 
 export const getEmployeeInfo = async (): Promise<EmployeeInfo> => {
     try {

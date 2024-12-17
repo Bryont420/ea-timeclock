@@ -35,6 +35,22 @@ axiosInstance.interceptors.request.use(
             }
             config.headers.Authorization = `Bearer ${token}`;
         }
+
+        // Add cache control headers only for dynamic data endpoints
+        if (config.url && (
+            config.url.includes('/api/admin/') ||
+            config.url.includes('/api/employee/') ||
+            config.url.includes('/api/time-off-requests/') ||
+            config.url.includes('/api/time-entries/')
+        )) {
+            if (!config.headers) {
+                config.headers = new AxiosHeaders();
+            }
+            config.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+            config.headers['Pragma'] = 'no-cache';
+            config.headers['Expires'] = '0';
+        }
+
         return config;
     },
     (error) => {

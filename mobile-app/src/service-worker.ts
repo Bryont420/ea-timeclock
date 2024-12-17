@@ -5,7 +5,7 @@ import { clientsClaim } from 'workbox-core';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
-import { StaleWhileRevalidate, CacheFirst } from 'workbox-strategies';
+import { StaleWhileRevalidate, CacheFirst, NetworkFirst } from 'workbox-strategies';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
 declare const self: ServiceWorkerGlobalScope;
@@ -43,11 +43,15 @@ registerRoute(
     request.destination === 'style' ||
     request.destination === 'script' ||
     request.destination === 'worker',
-  new StaleWhileRevalidate({
+  new CacheFirst({
     cacheName: 'static-resources',
     plugins: [
       new CacheableResponsePlugin({
         statuses: [0, 200]
+      }),
+      new ExpirationPlugin({
+        maxAgeSeconds: 24 * 60 * 60, // 24 hours
+        maxEntries: 50 // Maximum number of assets to cache
       })
     ]
   })
@@ -63,8 +67,29 @@ registerRoute(
         statuses: [0, 200]
       }),
       new ExpirationPlugin({
-        maxEntries: 60,
-        maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
+        maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
+        maxEntries: 60 // Maximum number of images to cache
+      })
+    ]
+  })
+);
+
+// Dynamic data routes - Network first with fallback
+registerRoute(
+  ({ url }) => 
+    url.pathname.includes('/api/admin/') ||
+    url.pathname.includes('/api/employee/') ||
+    url.pathname.includes('/api/time-off-requests/') ||
+    url.pathname.includes('/api/time-entries/'),
+  new NetworkFirst({
+    cacheName: 'dynamic-data',
+    plugins: [
+      new CacheableResponsePlugin({
+        statuses: [0, 200]
+      }),
+      new ExpirationPlugin({
+        maxAgeSeconds: 5 * 60, // 5 minutes
+        maxEntries: 100
       })
     ]
   })

@@ -127,10 +127,10 @@ export const TimeOffRequestForm: React.FC<{
         end_date: isPartialDay ? format(startDate!, 'yyyy-MM-dd') : format(endDate!, 'yyyy-MM-dd'),
         hours_requested: hours,
         request_type: requestType,
-        reason: reason.trim(),
+        reason: `${reason.trim()}${initialRequest ? ' (Update Request)' : ''}`,
         is_partial_day: isPartialDay,
         start_time: isPartialDay ? format(startTime!, 'HH:mm') : undefined,
-        end_time: isPartialDay ? format(endTime!, 'HH:mm') : undefined,
+        end_time: isPartialDay ? format(endTime!, 'HH:mm') : undefined
       };
 
       setIsSubmitting(true);
