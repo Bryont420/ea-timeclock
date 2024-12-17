@@ -95,6 +95,7 @@ def login_view(request):
                 force_password_change = False
                 if hasattr(user, 'employee'):
                     force_password_change = user.employee.force_password_change
+                    logger.debug(f"Force password change for {user.username}: {force_password_change}")
                 
                 # Generate tokens
                 refresh = RefreshToken.for_user(user)

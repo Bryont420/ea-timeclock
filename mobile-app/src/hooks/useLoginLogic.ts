@@ -62,8 +62,8 @@ export const useLoginLogic = () => {
             if (isMobileDevice()) {
                 localStorage.setItem('lastUsername', username);
                 
-                // If this was a successful password login, try to register biometrics
-                if (!e.isBiometric) {
+                // Only try to register biometrics if password doesn't need to be changed
+                if (!e.isBiometric && !response.force_password_change) {
                     try {
                         const isAvailable = await checkBiometricCapability();
                         const isRegistered = hasBiometricRegistered(username);

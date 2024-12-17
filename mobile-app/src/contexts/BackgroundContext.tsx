@@ -147,8 +147,8 @@ export const BackgroundProvider: React.FC<{ children: React.ReactNode }> = ({ ch
      * Resets the background image and fetches a new one if necessary.
      */
     useEffect(() => {
-        if (!isAuthenticated) {
-            console.debug('User not authenticated, resetting background');
+        if (!isAuthenticated || user?.force_password_change) {
+            console.debug('User not authenticated or needs password change, resetting background');
             resetToDefault();
             currentUserType.current = null;
             return;
@@ -165,7 +165,7 @@ export const BackgroundProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             currentUserType.current = newUserType;
             refreshBackground();
         }
-    }, [isAuthenticated, user?.is_staff, resetToDefault, refreshBackground]);
+    }, [isAuthenticated, user?.is_staff, user?.force_password_change, resetToDefault, refreshBackground]);
 
     /**
      * Handles storage changes (logout/login) to synchronize background image state across tabs.

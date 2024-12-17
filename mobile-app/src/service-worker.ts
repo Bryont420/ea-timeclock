@@ -95,6 +95,24 @@ registerRoute(
   })
 );
 
+// User preferences - Network first with short cache
+registerRoute(
+  ({ url }) => 
+    url.pathname.includes('/api/user/preferences/'),
+  new NetworkFirst({
+    cacheName: 'user-preferences',
+    plugins: [
+      new CacheableResponsePlugin({
+        statuses: [0, 200]
+      }),
+      new ExpirationPlugin({
+        maxAgeSeconds: 60, // 1 minute
+        maxEntries: 10
+      })
+    ]
+  })
+);
+
 // Cache API responses
 registerRoute(
   ({ url }) => url.pathname.startsWith('/api/'),
@@ -126,6 +144,17 @@ self.addEventListener('message', (event) => {
 
   if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  }
+
+  if (event.data && event.data.type === 'LOGOUT') {
+    // Clear user-specific caches
+    caches.delete('user-preferences')
+      .then(() => {
+        console.log('User preferences cache cleared');
+      })
+      .catch((error) => {
+        console.error('Error clearing user preferences cache:', error);
+      });
   }
 });
 

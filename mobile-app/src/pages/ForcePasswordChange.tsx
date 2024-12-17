@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { TextField, Button, Typography, Alert, Card, CardContent, Box } from '@mui/material';
 import { LoginContainer } from '../components/auth/LoginContainer';
-import { resetPassword } from '../services/passwordResetService';
-import { login } from '../services/auth';
+import { changePassword, getUserData } from '../services/auth';
 import { checkBiometricCapability, registerBiometric, hasBiometricRegistered } from '../utils/biometricAuth';
 import { useAuth } from '../contexts/AuthContext';
 
-const PasswordReset: React.FC = () => {
-  const { token } = useParams<{ token: string }>();
+const ForcePasswordChange: React.FC = () => {
   const navigate = useNavigate();
   const { setIsAuthenticated, setUser } = useAuth();
   const [newPassword, setNewPassword] = useState('');
@@ -26,6 +24,14 @@ const PasswordReset: React.FC = () => {
   const [isFlashingDark, setIsFlashingDark] = useState(false); // Tracks flash state
 
   const isMobile = /Mobi|Android/i.test(navigator.userAgent); // Check if user is on mobile
+
+  // Check if user needs to change password
+  useEffect(() => {
+    const userData = getUserData();
+    if (!userData?.force_password_change) {
+      navigate('/');
+    }
+  }, [navigate]);
 
   // Update requirements met state based on password input
   useEffect(() => {
@@ -102,60 +108,47 @@ const PasswordReset: React.FC = () => {
     setButtonPositionX('center'); // Return button to center
 
     try {
-      const result = await resetPassword(token!, newPassword);
-      
-      if (result.success) {
-        setMessage('Password reset successfully!');
-        
-        // Login with new password
-        try {
-          const loginResponse = await login(result.data.username, newPassword);
-          
-          // Update auth context
-          setIsAuthenticated(true);
-          setUser({
-            id: loginResponse.id,
-            username: loginResponse.username,
-            email: loginResponse.email,
-            is_staff: loginResponse.is_staff,
-            is_admin: loginResponse.is_staff,
-            force_password_change: loginResponse.force_password_change
-          });
+      const response = await changePassword(newPassword);
+      setMessage('Password changed successfully!');
 
-          // Try to register biometrics if available and not already registered
-          try {
-            const canUseBiometrics = await checkBiometricCapability();
-            if (canUseBiometrics && !hasBiometricRegistered(result.data.username)) {
-              const credentialId = await registerBiometric(result.data.username);
-              if (!credentialId && isMobile) {
-                console.error('Failed to register biometrics on mobile device');
-              }
-            }
-          } catch (biometricError) {
-            // Only log error on mobile devices
-            if (isMobile) {
-              console.error('Failed to register biometrics:', biometricError);
-            }
-            // Continue even if biometric registration fails
+      // Update auth context with new user data
+      setIsAuthenticated(true);
+      setUser({
+        id: response.id,
+        username: response.username,
+        email: response.email,
+        is_staff: response.is_staff,
+        is_admin: response.is_staff,
+        force_password_change: false
+      });
+
+      // Try to register biometrics if available and not already registered
+      try {
+        const canUseBiometrics = await checkBiometricCapability();
+        if (canUseBiometrics && !hasBiometricRegistered(response.username)) {
+          const credentialId = await registerBiometric(response.username);
+          if (!credentialId && isMobile) {
+            console.error('Failed to register biometrics on mobile device');
           }
-
-          // Navigate based on user role
-          setTimeout(() => {
-            if (result.data.is_staff) {
-              navigate('/admin');
-            } else {
-              navigate('/dashboard');
-            }
-          }, 2000);
-        } catch (loginError) {
-          console.error('Failed to login after password reset:', loginError);
-          navigate('/');  // Redirect to login page if auto-login fails
         }
-      } else {
-        setError(result.error || 'Failed to reset password');
+      } catch (biometricError) {
+        // Only log error on mobile devices
+        if (isMobile) {
+          console.error('Failed to register biometrics:', biometricError);
+        }
+        // Continue even if biometric registration fails
       }
+
+      // Navigate based on user role
+      setTimeout(() => {
+        if (response.is_staff) {
+          navigate('/admin');
+        } else {
+          navigate('/dashboard');
+        }
+      }, 2000);
     } catch (err) {
-      setError((err as any).error || 'An error occurred. Please try again.');
+      setError((err as any).message || 'Failed to change password');
     }
   };
 
@@ -187,7 +180,18 @@ const PasswordReset: React.FC = () => {
           textAlign: 'center',
         }}
       >
-        Reset Your Password
+        Change Password Required
+      </Typography>
+      <Typography
+        variant="body1"
+        gutterBottom
+        sx={{
+          textAlign: 'center',
+          mb: 3,
+          color: 'text.secondary'
+        }}
+      >
+        Your password needs to be changed before continuing.
       </Typography>
       <form onSubmit={handleButtonClick}>
         <TextField
@@ -253,19 +257,14 @@ const PasswordReset: React.FC = () => {
             onMouseEnter={handleButtonHover}
             onClick={handleButtonClick}
           >
-            Confirm
+            Change Password
           </Button>
         </Box>
       </form>
       {message && <Alert severity="success">{message}</Alert>}
       {error && <Alert severity="error">{error}</Alert>}
-      <Box sx={{ mt: 2, textAlign: 'center' }}>
-        <Button component="a" href="/login" variant="text" size="small">
-          Back to Login
-        </Button>
-      </Box>
     </LoginContainer>
   );
 };
 
-export default PasswordReset;
+export default ForcePasswordChange;
