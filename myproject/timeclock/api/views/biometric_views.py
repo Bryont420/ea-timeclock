@@ -238,6 +238,47 @@ class BiometricLoginView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+class BiometricVerifyView(APIView):
+    """
+    Endpoint to verify if a biometric credential exists in the backend.
+    This is used to check if stored credentials on the device are still valid.
+    """
+    permission_classes = []
+
+    def post(self, request):
+        try:
+            username = request.data.get('username')
+            credential_id = request.data.get('credential_id')
+
+            if not username or not credential_id:
+                return Response(
+                    {'detail': 'Missing required fields'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Get the user
+            try:
+                user = User.objects.get(username=username)
+            except User.DoesNotExist:
+                return Response(
+                    {'valid': False},
+                    status=status.HTTP_200_OK
+                )
+
+            # Check if the credential exists
+            credential_exists = BiometricCredential.objects.filter(
+                user=user,
+                credential_id=credential_id
+            ).exists()
+
+            return Response({'valid': credential_exists})
+        except Exception as e:
+            logger.exception('Error verifying biometric credential')
+            return Response(
+                {'valid': False},
+                status=status.HTTP_200_OK
+            )
+
 class BiometricRegistrationView(APIView):
     permission_classes = [IsAuthenticated]
 

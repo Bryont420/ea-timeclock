@@ -128,7 +128,13 @@ export const useLoginLogic = () => {
         setLoading(true);
 
         try {
-            const { verified, credential } = await verifyBiometric(username);
+            const { verified, credential, needsReregistration } = await verifyBiometric(username);
+            
+            if (needsReregistration) {
+                setLoading(false);
+                setError('Please log in with your password to re-register your biometrics');
+                return null;
+            }
             
             if (!verified || !credential) {
                 setLoading(false);
