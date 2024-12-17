@@ -99,7 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     email: storedUserData.email,
                     is_staff: true,
                     is_admin: true,
-                    force_password_change: false,
+                    force_password_change: storedUserData.force_password_change,
                     employee: null
                 };
                 setUser(userData);
@@ -117,7 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         email: storedUserData.email,
                         is_staff: false,
                         is_admin: false,
-                        force_password_change: false,
+                        force_password_change: storedUserData.force_password_change,
                         employee: data
                     };
                     setUser(userData);

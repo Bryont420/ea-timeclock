@@ -15,7 +15,7 @@ from .views.base_views import (
     time_entries,
     background_image
 )
-from .views.auth_views import logout_view
+from .views.auth_views import logout_view, change_password
 from .views import theme_views
 from .views.email_update_view import EmailUpdateView
 from .views.password_reset import request_password_reset, reset_password
@@ -46,4 +46,5 @@ urlpatterns = [
     # Biometric Authentication
     path('auth/biometric-login/', BiometricLoginView.as_view(), name='biometric-login'),
     path('auth/biometric-register/', BiometricRegistrationView.as_view(), name='biometric-register'),
+    path('auth/change-password/', change_password, name='change_password'),
 ] + router.urls

@@ -64,6 +64,11 @@ export const checkBiometricCapability = async (): Promise<boolean> => {
     }
 };
 
+// Check if the device is mobile
+export const isMobileDevice = (): boolean => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
 // Convert string to Uint8Array
 const str2ab = (str: string): Uint8Array => {
     return new Uint8Array(str.split('').map(c => c.charCodeAt(0)));
@@ -181,6 +186,11 @@ const getStoredCredential = (username: string): StoredCredential | null => {
 
 // Register biometric credentials
 export const registerBiometric = async (username: string): Promise<string> => {
+    // Skip biometric registration on desktop
+    if (!isMobileDevice()) {
+        return '';
+    }
+
     try {
         // First remove any existing registration
         removeBiometric(username);
@@ -200,10 +210,16 @@ export const registerBiometric = async (username: string): Promise<string> => {
                 name: username,
                 displayName: username
             },
-            pubKeyCredParams: [{
-                type: 'public-key',
-                alg: -7 // ES256
-            }],
+            pubKeyCredParams: [
+                {
+                    type: 'public-key',
+                    alg: -7 // ES256
+                },
+                {
+                    type: 'public-key',
+                    alg: -257 // RS256
+                }
+            ],
             timeout: 60000,
             attestation: 'direct',
             authenticatorSelection: {

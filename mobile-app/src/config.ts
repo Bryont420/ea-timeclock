@@ -77,13 +77,14 @@ export const ERROR_MESSAGES = {
 export const API_ENDPOINTS = {
     AUTH: {
         LOGIN: '/api/login/',
-        BIOMETRIC_LOGIN: '/api/auth/biometric-login/',
-        BIOMETRIC_REGISTER: '/api/auth/biometric-register/',
         LOGOUT: '/api/logout/',
         REFRESH: '/api/token/refresh/',
+        BIOMETRIC_LOGIN: '/api/auth/biometric-login/',
+        BIOMETRIC_REGISTER: '/api/auth/biometric-register/',
         VERIFY: '/api/verify/',
         PASSWORD_RESET_REQUEST: '/api/password-reset/request/',
         PASSWORD_RESET: '/api/password-reset/',
+        CHANGE_PASSWORD: '/api/auth/change-password/',
     },
     EMPLOYEE: {
         BACKGROUND_IMAGE: '/api/employee/background-image/',

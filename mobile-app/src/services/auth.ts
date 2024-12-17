@@ -77,6 +77,13 @@ export const clearAllUserData = () => {
             clearTimeout(window.tokenRefreshTimer);
             window.tokenRefreshTimer = undefined;
         }
+
+        // Clear service worker cache
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(registration => {
+                registration.active?.postMessage({ type: 'LOGOUT' });
+            });
+        }
     } catch (error) {
         console.error('Error clearing user data:', error);
     }
@@ -248,41 +255,41 @@ export const login = async (
             throw new APIError('Invalid access token received', 401);
         }
 
-        // Store tokens
-        sessionStorage.setItem('token', access);
-        sessionStorage.setItem('refresh_token', refresh);
+        // Store auth tokens and user data
+        if (!response.data.force_password_change) {
+            sessionStorage.setItem('token', response.data.access);
+            sessionStorage.setItem('refresh_token', response.data.refresh);
+            sessionStorage.setItem('user', JSON.stringify(userData));
+            
+            // Set up token refresh timer
+            const payload = JSON.parse(atob(access.split('.')[1]));
+            const tokenExp = payload.exp * 1000;
+            const refreshTime = tokenExp - Date.now() - (5 * 60 * 1000); // Refresh 5 minutes before expiry
 
-        // Store user data
-        const userDataToStore = {
-            id: userData.id,
-            username: userData.username,
-            email: userData.email,
-            is_staff: userData.is_staff,
-            is_admin: userData.is_staff,
-            force_password_change: userData.force_password_change,
-            employee: !userData.is_staff
-        };
-        sessionStorage.setItem('user', JSON.stringify(userDataToStore));
-
-        // Update axios
-        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
-
-        // Set up token refresh
-        const payload = JSON.parse(atob(access.split('.')[1]));
-        const tokenExp = payload.exp * 1000;
-        const refreshTime = tokenExp - Date.now() - (5 * 60 * 1000);
-
-        if (window.tokenRefreshTimer) {
-            clearTimeout(window.tokenRefreshTimer);
-        }
-
-        window.tokenRefreshTimer = setTimeout(async () => {
-            try {
-                await refreshAuthToken();
-            } catch (error) {
-                await logout();
+            if (window.tokenRefreshTimer) {
+                clearTimeout(window.tokenRefreshTimer);
             }
-        }, refreshTime);
+
+            window.tokenRefreshTimer = setTimeout(async () => {
+                try {
+                    await refreshAuthToken();
+                } catch (error) {
+                    console.error('Token refresh failed:', error);
+                    await logout();
+                }
+            }, refreshTime);
+
+            // Update axios headers with new token
+            axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
+        } else {
+            // For force password change, only store minimal data needed
+            sessionStorage.setItem('token', response.data.access);
+            sessionStorage.setItem('user', JSON.stringify({
+                username: response.data.username,
+                force_password_change: true,
+                is_staff: response.data.is_staff
+            }));
+        }
 
         return response.data;
     } catch (error) {
@@ -398,4 +405,40 @@ export const isAuthenticated = (): boolean => {
 export const getAuthHeader = (): { Authorization: string } | undefined => {
     const token = getToken();
     return token ? { Authorization: `Bearer ${token}` } : undefined;
+};
+
+export const changePassword = async (newPassword: string): Promise<LoginResponse> => {
+    try {
+        const token = getToken();
+        if (!token) {
+            throw new APIError('No authentication token found', 401);
+        }
+
+        const response = await axiosInstance.post<LoginResponse>(
+            API_ENDPOINTS.AUTH.CHANGE_PASSWORD,
+            { new_password: newPassword },
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        // The backend should return new tokens after password change
+        const { access, refresh, ...userData } = response.data;
+        
+        // Update tokens
+        sessionStorage.setItem('token', access);
+        sessionStorage.setItem('refresh_token', refresh);
+        
+        // Update user data
+        const updatedUserData = {
+            ...userData,
+            force_password_change: false
+        };
+        sessionStorage.setItem('user', JSON.stringify(updatedUserData));
+
+        return response.data;
+    } catch (error) {
+        if (error instanceof Error) {
+            throw new APIError(error.message, error instanceof APIError ? error.status : 400);
+        }
+        throw new APIError('Failed to change password', 400);
+    }
 };

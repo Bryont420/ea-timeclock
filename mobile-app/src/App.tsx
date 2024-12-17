@@ -58,28 +58,37 @@ const AdminDashboard = lazyWithRetry(() => import(/* webpackChunkName: "admin-da
 const AdminTimeEntries = lazyWithRetry(() => import(/* webpackChunkName: "admin-time-entries" */ './pages/AdminTimeEntries').then(module => ({ default: module.AdminTimeEntries })), 'admin-time-entries');
 const PasswordResetRequest = lazyWithRetry(() => import(/* webpackChunkName: "password-reset" */ './pages/PasswordResetRequest').then(module => ({ default: module.default })), 'password-reset');
 const PasswordReset = lazyWithRetry(() => import(/* webpackChunkName: "password-reset" */ './pages/PasswordReset').then(module => ({ default: module.default })), 'password-reset');
+const ForcePasswordChange = lazyWithRetry(() => import(/* webpackChunkName: "force-password-change" */ './pages/ForcePasswordChange'), 'force-password-change');
 
-// Protected Route component with memoization and role-based access
-const ProtectedRoute = React.memo(({ children, requireAdmin = false }: { children: React.ReactNode; requireAdmin?: boolean }) => {
+// Private Route component
+const PrivateRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
   const { isAuthenticated, user } = useAuth();
 
-  // Redirect to login if not authenticated
   if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" />;
   }
 
-  // Handle admin access
-  if (requireAdmin && !user?.is_staff) {
-    return <Navigate to="/dashboard" replace />;
+  // Redirect to force password change if needed
+  if (user?.force_password_change && window.location.pathname !== '/force-password-change') {
+    console.log('User needs to change password, redirecting to force-password-change');
+    return <Navigate to="/force-password-change" />;
+  }
+
+  // Handle admin routes
+  const isAdminRoute = window.location.pathname.startsWith('/admin');
+  if (isAdminRoute && !user?.is_staff) {
+    console.log('Non-admin user trying to access admin route, redirecting to dashboard');
+    return <Navigate to="/dashboard" />;
   }
 
   // Redirect admins to admin dashboard from employee routes
   if (user?.is_staff && window.location.pathname === '/dashboard') {
-    return <Navigate to="/admin" replace />;
+    console.log('Admin user accessing dashboard, redirecting to admin dashboard');
+    return <Navigate to="/admin" />;
   }
 
-  return <Layout>{children}</Layout>;
-});
+  return <Layout>{element}</Layout>;
+};
 
 // Main App component
 const App = () => {
@@ -119,39 +128,28 @@ const App = () => {
                       <Route path="/login" element={<Navigate to="/" replace />} />
                       <Route path="/password-reset-request" element={<PasswordResetRequest />} />
                       <Route path="/reset-password/:token" element={<PasswordReset />} />
+                      <Route path="/force-password-change" element={<ForcePasswordChange />} />
                       
                       {/* Employee Routes */}
                       <Route path="/dashboard" element={
-                        <ProtectedRoute>
-                          <Dashboard />
-                        </ProtectedRoute>
+                        <PrivateRoute element={<Dashboard />} />
                       } />
                       <Route path="/time-entries" element={
-                        <ProtectedRoute>
-                          <TimeEntries />
-                        </ProtectedRoute>
+                        <PrivateRoute element={<TimeEntries />} />
                       } />
                       <Route path="/time-off" element={
-                        <ProtectedRoute>
-                          <TimeOff />
-                        </ProtectedRoute>
+                        <PrivateRoute element={<TimeOff />} />
                       } />
                       
                       {/* Admin Routes */}
                       <Route path="/admin" element={
-                        <ProtectedRoute requireAdmin>
-                          <AdminDashboard />
-                        </ProtectedRoute>
+                        <PrivateRoute element={<AdminDashboard />} />
                       } />
                       <Route path="/admin/time-entries" element={
-                        <ProtectedRoute requireAdmin>
-                          <AdminTimeEntries />
-                        </ProtectedRoute>
+                        <PrivateRoute element={<AdminTimeEntries />} />
                       } />
                       <Route path="/admin/time-off" element={
-                        <ProtectedRoute requireAdmin>
-                          <AdminTimeOff />
-                        </ProtectedRoute>
+                        <PrivateRoute element={<AdminTimeOff />} />
                       } />
                       
                       {/* Catch all route */}

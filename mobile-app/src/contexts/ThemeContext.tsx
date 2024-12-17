@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { ThemeProvider as MuiThemeProvider, createTheme } from '@mui/material';
 import { axiosInstance } from '../utils/axios';
 import { useAuth } from './AuthContext';
@@ -30,6 +30,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [currentTheme, setCurrentTheme] = useState<ThemeOption>(darkTheme);
   const [hoverTheme, setHoverTheme] = useState<ThemeOption | null>(null);
   const { user } = useAuth();
+  const currentUserRef = useRef<number | null>(null);
+  const lastFetchTime = useRef<number>(0);
+  const FETCH_COOLDOWN = 2000; // 2 seconds cooldown between fetches
+  const isLoadingTheme = useRef(false);
 
   const setTheme = useCallback(async (themeId: string) => {
     const theme = themes.find((t) => t.id === themeId);
@@ -45,31 +49,80 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     }
   }, [user]);
 
-  // Reset to dark theme when user logs out
-  useEffect(() => {
-    if (!user) {
-      setCurrentTheme(darkTheme);
-    }
-  }, [user, darkTheme]);
+  const resetTheme = useCallback(() => {
+    setCurrentTheme(darkTheme);
+    currentUserRef.current = null;
+    lastFetchTime.current = Date.now();
+    isLoadingTheme.current = false;
+  }, [darkTheme]);
 
-  // Load user theme only when logged in
+  const loadUserTheme = useCallback(async () => {
+    if (isLoadingTheme.current) {
+      console.debug('Already loading theme, skipping');
+      return;
+    }
+
+    const now = Date.now();
+    if (now - lastFetchTime.current < FETCH_COOLDOWN) {
+      console.debug('Skipping theme refresh due to cooldown');
+      return;
+    }
+
+    lastFetchTime.current = now;
+    isLoadingTheme.current = true;
+
+    try {
+      const response = await axiosInstance.get('/api/user/preferences/theme/');
+      const userThemeId = response.data.themeId;
+      const userTheme = themes.find((t) => t.id === userThemeId);
+      if (userTheme) {
+        setCurrentTheme(userTheme);
+      }
+    } catch (error) {
+      console.error('Failed to load user theme:', error);
+      setCurrentTheme(darkTheme);
+    } finally {
+      isLoadingTheme.current = false;
+    }
+  }, [darkTheme]);
+
+  // Handle user changes and authentication status
   useEffect(() => {
-    const loadUserTheme = async () => {
-      if (user) {
-        try {
-          const response = await axiosInstance.get('/api/user/preferences/theme/');
-          const userThemeId = response.data.themeId;
-          const userTheme = themes.find((t) => t.id === userThemeId);
-          if (userTheme) {
-            setCurrentTheme(userTheme);
-          }
-        } catch (error) {
-          console.error('Failed to load user theme:', error);
+    if (!user || user.force_password_change) {
+      console.debug('User not authenticated or needs password change, resetting theme');
+      resetTheme();
+      return;
+    }
+
+    // Check if user has changed
+    if (currentUserRef.current !== user.id) {
+      console.debug('User changed, updating theme');
+      currentUserRef.current = user.id;
+      // Don't reset to dark theme here, just load the user's theme
+      loadUserTheme();
+    }
+  }, [user, resetTheme, loadUserTheme]);
+
+  // Handle storage events for cross-tab synchronization
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'token' || e.key === 'user') {
+        const userData = e.key === 'user' && e.newValue ? JSON.parse(e.newValue) : null;
+        if (!userData || userData.force_password_change) {
+          console.debug('Storage changed, resetting theme');
+          resetTheme();
+        } else {
+          // Don't reset to dark theme, just reload user theme
+          loadUserTheme();
         }
       }
     };
-    loadUserTheme();
-  }, [user]);
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [resetTheme, loadUserTheme]);
 
   const theme = useMemo(() => {
     const activeTheme = hoverTheme || currentTheme;
