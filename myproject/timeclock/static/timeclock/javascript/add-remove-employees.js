@@ -8,15 +8,20 @@ $(document).ready(function() {
         $('#loadingSpinner').hide();
     }
 
-	function isValidDate(inputDate) {
-		const today = new Date();
-		
-		// Get today's date in 'YYYY-MM-DD' format
-		const todayStr = today.toISOString().split('T')[0];
-		
-		// Compare the input date string with today's date string
-		return inputDate <= todayStr;
-	}
+    function isValidDate(inputDate) {
+        const today = new Date();
+        
+        // Get today's date in 'YYYY-MM-DD' format
+        const todayStr = today.toISOString().split('T')[0];
+        
+        // Compare the input date string with today's date string
+        return inputDate <= todayStr;
+    }
+
+    function isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
 
     // Add Employee
     $('#add-employee-button').click(function() {
@@ -29,14 +34,21 @@ $(document).ready(function() {
         const data = {
             first_name: $('#first_name').val(),
             last_name: $('#last_name').val(),
+            email: $('#email').val(),
             employee_id: $('#employee_id').val(),
             hire_date: $('#hire_date').val(),
             department: $('#department').val()
         };
 
         // Validate form data
-        if (!data.first_name || !data.last_name || !data.employee_id || !data.hire_date || !data.department) {
+        if (!data.first_name || !data.last_name || !data.email || !data.employee_id || !data.hire_date || !data.department) {
             alert('All fields are required.');
+            return;
+        }
+
+        // Validate email format
+        if (!isValidEmail(data.email)) {
+            alert('Please enter a valid email address.');
             return;
         }
 
@@ -77,13 +89,14 @@ $(document).ready(function() {
             url: url,
             type: 'GET',
             success: function(response) {
-                if (response) {
+                if (response.success && response.employee) {
                     // Populate the form fields
-                    $('#edit_first_name').val(response.first_name);
-                    $('#edit_last_name').val(response.last_name);
-                    $('#edit_employee_id').val(response.employee_id);
-                    $('#edit_hire_date').val(response.hire_date);
-                    $('#edit_department').val(response.department);
+                    $('#edit_first_name').val(response.employee.first_name);
+                    $('#edit_last_name').val(response.employee.last_name);
+                    $('#edit_email').val(response.employee.email);
+                    $('#edit_employee_id').val(response.employee.employee_id);
+                    $('#edit_hire_date').val(response.employee.hire_date);
+                    $('#edit_department').val(response.employee.department);
 
                     // Set the form action to the current employee's ID
                     $('#editEmployeeForm').attr('action', url);
@@ -107,14 +120,21 @@ $(document).ready(function() {
         const data = {
             first_name: $('#edit_first_name').val(),
             last_name: $('#edit_last_name').val(),
+            email: $('#edit_email').val(),
             employee_id: $('#edit_employee_id').val(),
             hire_date: $('#edit_hire_date').val(),
             department: $('#edit_department').val()
         };
 
         // Validate form data
-        if (!data.first_name || !data.last_name || !data.employee_id || !data.hire_date || !data.department) {
+        if (!data.first_name || !data.last_name || !data.email || !data.employee_id || !data.hire_date || !data.department) {
             alert('All fields are required.');
+            return;
+        }
+
+        // Validate email format
+        if (!isValidEmail(data.email)) {
+            alert('Please enter a valid email address.');
             return;
         }
 

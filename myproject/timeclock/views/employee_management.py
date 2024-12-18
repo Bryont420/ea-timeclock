@@ -9,6 +9,12 @@ from datetime import datetime
 from django.conf import settings
 from django.db import transaction, IntegrityError
 import logging
+from .email_helpers import send_welcome_email, send_password_reset_email  # Add this import
+from django.contrib.auth.hashers import make_password
+from datetime import datetime
+from django.conf import settings
+from django.db import transaction, IntegrityError
+import logging
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.response import Response
@@ -38,15 +44,19 @@ def add_employee(request):
 
     first_name = request.POST.get('first_name')
     last_name = request.POST.get('last_name')
+    email = request.POST.get('email')
     employee_id = request.POST.get('employee_id')
     hire_date_str = request.POST.get('hire_date')
     department = request.POST.get('department')
 
-    if not first_name or not last_name or not employee_id:
-        return JsonResponse({'success': False, 'error': 'Missing fields'}, status=400)
+    if not first_name or not last_name or not employee_id or not email:
+        return JsonResponse({'success': False, 'error': 'Missing required fields'}, status=400)
 
     if Employee.objects.filter(employee_id=employee_id).exists():
         return JsonResponse({'success': False, 'error': 'Employee ID already exists'}, status=400)
+
+    if User.objects.filter(email=email).exists():
+        return JsonResponse({'success': False, 'error': 'Email address already exists'}, status=400)
 
     # Parse the hire_date string to a date object, if provided
     hire_date = None
@@ -70,7 +80,8 @@ def add_employee(request):
                 username=username,
                 password=default_password,
                 first_name=first_name,
-                last_name=last_name
+                last_name=last_name,
+                email=email
             )
 
             # Create employee
@@ -82,6 +93,14 @@ def add_employee(request):
                 hire_date=hire_date,
                 department=department,
                 force_password_change=True
+            )
+
+            # Send welcome email
+            send_welcome_email(
+                to_email=email,
+                username=username,
+                password=default_password,
+                employee_name=f"{first_name} {last_name}"
             )
 
             return JsonResponse({'success': True})
@@ -100,11 +119,16 @@ def edit_employee(request, employee_id):
         try:
             employee = get_object_or_404(Employee, id=employee_id)
             return JsonResponse({
-                'first_name': employee.first_name,
-                'last_name': employee.last_name,
-                'employee_id': employee.employee_id,
-                'hire_date': employee.hire_date.strftime('%Y-%m-%d') if employee.hire_date else None,
-                'department': employee.department,
+                'success': True,
+                'employee': {
+                    'id': employee.id,
+                    'first_name': employee.first_name,
+                    'last_name': employee.last_name,
+                    'email': employee.user.email,
+                    'employee_id': employee.employee_id,
+                    'hire_date': employee.hire_date.strftime('%Y-%m-%d') if employee.hire_date else '',
+                    'department': employee.department
+                }
             })
         except Exception as e:
             logger.error(f"Error fetching employee: {str(e)}")
@@ -112,20 +136,25 @@ def edit_employee(request, employee_id):
 
     if request.method == 'POST':
         try:
-            employee = get_object_or_404(Employee, id=employee_id)
-            
             first_name = request.POST.get('first_name')
             last_name = request.POST.get('last_name')
+            email = request.POST.get('email')
             employee_id_new = request.POST.get('employee_id')
             hire_date_str = request.POST.get('hire_date')
             department = request.POST.get('department')
 
-            if not first_name or not last_name or not employee_id_new:
-                return JsonResponse({'success': False, 'error': 'Missing fields'}, status=400)
+            if not first_name or not last_name or not employee_id_new or not email:
+                return JsonResponse({'success': False, 'error': 'Missing required fields'}, status=400)
 
             # Check if new employee_id exists and it's not the current employee
             if Employee.objects.filter(employee_id=employee_id_new).exclude(id=employee_id).exists():
                 return JsonResponse({'success': False, 'error': 'Employee ID already exists'}, status=400)
+
+            # Check if email changed and if new email is already in use
+            employee = get_object_or_404(Employee, id=employee_id)
+            user = employee.user
+            if email != user.email and User.objects.filter(email=email).exclude(id=user.id).exists():
+                return JsonResponse({'success': False, 'error': 'Email address already exists'}, status=400)
 
             # Parse the hire_date string to a date object, if provided
             if hire_date_str:
@@ -137,6 +166,12 @@ def edit_employee(request, employee_id):
                 hire_date = None
 
             with transaction.atomic():
+                # Update user
+                user.first_name = first_name
+                user.last_name = last_name
+                user.email = email
+                user.save()
+
                 # Update employee
                 employee.first_name = first_name
                 employee.last_name = last_name
@@ -144,12 +179,6 @@ def edit_employee(request, employee_id):
                 employee.hire_date = hire_date
                 employee.department = department
                 employee.save()
-
-                # Update associated user
-                employee.user.first_name = first_name
-                employee.user.last_name = last_name
-                employee.user.username = employee_id_new
-                employee.user.save()
 
                 return JsonResponse({'success': True})
         except Exception as e:
@@ -163,7 +192,11 @@ def reset_employee_password(request, employee_id):
     try:
         employee = get_object_or_404(Employee, id=employee_id)
         user = employee.user
-        default_password = settings.DEFAULT_EMPLOYEE_PASSWORD  # Access the password from settings
+
+        # Clear any existing biometric credentials
+        user.biometric_credentials.all().delete()
+
+        default_password = settings.DEFAULT_EMPLOYEE_PASSWORD
         user.set_password(default_password)
         user.save()
 
@@ -171,7 +204,15 @@ def reset_employee_password(request, employee_id):
         employee.force_password_change = True
         employee.save()
 
-        return JsonResponse({'success': True, 'message': 'Password has been reset to the default value.'})
+        # Send password reset email
+        send_password_reset_email(
+            to_email=user.email,
+            username=user.username,
+            new_password=default_password,
+            employee_name=f"{employee.first_name} {employee.last_name}"
+        )
+
+        return JsonResponse({'success': True, 'message': 'Password has been reset and email sent to employee.'})
     except Exception as e:
         logger.error(f"Error resetting employee password: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
@@ -188,11 +229,16 @@ def remove_employee(request, employee_id):
         # Store the associated user before deleting the employee
         user = employee.user
         
+        # Clear any existing biometric credentials
+        if user:
+            user.biometric_credentials.all().delete()
+        
         # Delete the employee
         employee.delete()
         
         # Delete the associated user
-        user.delete()
+        if user:
+            user.delete()
 
         return JsonResponse({'success': True})
     except Exception as e:

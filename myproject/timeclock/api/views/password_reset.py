@@ -39,8 +39,18 @@ def request_password_reset(request):
 
     # Send password reset email
     reset_link = f"{settings.FRONTEND_URL.rstrip('/')}/reset-password/{plain_token}"
-    subject = 'Password Reset Request'
-    body = f"Click the link to reset your password: {reset_link}"
+    subject = 'EA Promos Time Clock System - Password Reset Request'
+    body = f"""
+        <h2>Password Reset Request</h2>
+        <p>Hello,</p>
+        <p>We received a request to reset your password for the EA Promos Time Clock System.</p>
+        <p>Please click the link below to reset your password:</p>
+        <p><a href="{reset_link}">{reset_link}</a></p>
+        <p>If you did not request this password reset, please ignore this email and contact your supervisor immediately!</p>
+        <br>
+        <p>Best regards,</p>
+        <p>EA Promos Management Team</p>
+    """
     asyncio.run(send_shared_mail_async(email, subject, body))
 
     return JsonResponse({'message': 'Password reset link sent.'}, status=status.HTTP_200_OK)
