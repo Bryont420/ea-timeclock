@@ -50,13 +50,11 @@ export const isBiometricSupported = (): boolean => {
 // Check if the device has biometric capabilities
 export const checkBiometricCapability = async (): Promise<boolean> => {
     if (!isBiometricSupported()) {
-        console.log('Biometric not supported by browser');
         return false;
     }
 
     try {
         const available = await window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-        console.log('Biometric capability check:', available);
         return available;
     } catch (error) {
         console.error('Error checking biometric capability:', error);
