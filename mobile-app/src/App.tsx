@@ -70,20 +70,17 @@ const PrivateRoute: React.FC<{ element: React.ReactElement }> = ({ element }) =>
 
   // Redirect to force password change if needed
   if (user?.force_password_change && window.location.pathname !== '/force-password-change') {
-    console.log('User needs to change password, redirecting to force-password-change');
     return <Navigate to="/force-password-change" />;
   }
 
   // Handle admin routes
   const isAdminRoute = window.location.pathname.startsWith('/admin');
   if (isAdminRoute && !user?.is_staff) {
-    console.log('Non-admin user trying to access admin route, redirecting to dashboard');
     return <Navigate to="/dashboard" />;
   }
 
   // Redirect admins to admin dashboard from employee routes
   if (user?.is_staff && window.location.pathname === '/dashboard') {
-    console.log('Admin user accessing dashboard, redirecting to admin dashboard');
     return <Navigate to="/admin" />;
   }
 

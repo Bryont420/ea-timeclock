@@ -30,13 +30,10 @@ export const Login: React.FC = () => {
 
         // Navigate based on user type
         if (response.is_staff) {
-            console.log('User is staff, navigating to admin');
             navigate('/admin');
         } else if (response.force_password_change) {
-            console.log('Force password change is true, navigating to force-password-change');
             navigate('/force-password-change');
         } else {
-            console.log('Regular user, navigating to dashboard');
             navigate('/dashboard');
         }
     };
@@ -48,13 +45,10 @@ export const Login: React.FC = () => {
 
             // Navigate based on user type (same logic as handleLogin)
             if (response.is_staff) {
-                console.log('Navigating to admin');
                 navigate('/admin');
             } else if (response.force_password_change) {
-                console.log('Navigating to force password change');
                 navigate('/force-password-change');
             } else {
-                console.log('Navigating to dashboard');
                 navigate('/dashboard');
             }
         } catch (error) {
