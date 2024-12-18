@@ -434,6 +434,13 @@ export const changePassword = async (newPassword: string): Promise<LoginResponse
         };
         sessionStorage.setItem('user', JSON.stringify(updatedUserData));
 
+        // Clear biometric credentials for this user since password changed
+        const storedData = localStorage.getItem(`biometric_${userData.username}`);
+        if (storedData) {
+            localStorage.removeItem(`biometric_${userData.username}`);
+            console.debug('Cleared biometric credentials after password change');
+        }
+
         return response.data;
     } catch (error) {
         if (error instanceof Error) {

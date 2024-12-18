@@ -46,6 +46,10 @@ class AdminEmployeeViewSet(viewsets.ModelViewSet):
     def reset_password(self, request, pk=None):
         employee = self.get_object()
         if employee.user:
+            # Clear biometric credentials
+            employee.user.biometric_credentials.all().delete()
+            
+            # Reset password and set force_password_change flag
             employee.user.set_password('changeme')
             employee.user.save()
             employee.force_password_change = True

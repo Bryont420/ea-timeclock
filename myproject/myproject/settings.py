@@ -188,6 +188,9 @@ ADMIN_NOTIFICATION_EMAILS = os.getenv('ADMIN_NOTIFICATION_EMAILS', '').split(','
 # Employee settings
 DEFAULT_EMPLOYEE_PASSWORD = os.getenv('DEFAULT_EMPLOYEE_PASSWORD')
 
+# Application Settings
+APP_URL = 'https://ea-time-clock.duckdns.org:1832'
+
 # CORS settings
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [

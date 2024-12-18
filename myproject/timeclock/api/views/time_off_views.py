@@ -112,15 +112,24 @@ class TimeOffRequestViewSet(viewsets.ModelViewSet):
             instance = await save_serializer(employee=employee)
             
             # Send notification email to admins asynchronously
-            subject = f'New Time Off Request - {employee.first_name} {employee.last_name}'
+            subject = f'EA Promos Time Clock System - New Time Off Request'
             message = f'''
-                <h3>A new time off request has been submitted:</h3>
+                <h2>New Time Off Request Submitted</h2>
+                <p>Hello,</p>
+                <p>A new time off request has been submitted and requires your review.</p>
+                <br>
+                <p><strong>Request Details:</strong></p>
                 <p><strong>Employee:</strong> {employee.first_name} {employee.last_name}</p>
                 <p><strong>Request Type:</strong> {instance.get_request_type_display()}</p>
                 <p><strong>Start Date:</strong> {instance.start_date}</p>
                 <p><strong>End Date:</strong> {instance.end_date}</p>
                 <p><strong>Hours Requested:</strong> {instance.hours_requested}</p>
                 <p><strong>Reason:</strong> {instance.reason}</p>
+                <br>
+                <p>Please review this request at your earliest convenience.</p>
+                <br>
+                <p>Best regards,</p>
+                <p>EA Promos Management Team</p>
             '''
             
             # Send to all admin emails asynchronously
@@ -236,17 +245,22 @@ class TimeOffRequestViewSet(viewsets.ModelViewSet):
             hours = await sync_to_async(getattr)(time_off_request, 'hours_requested')
             review_notes = await sync_to_async(getattr)(time_off_request, 'review_notes')
             
-            subject = f"Time Off Request {status.title()}"
+            subject = f'EA Promos Time Clock System - Time Off Request {status.title()}'
             message = f"""
-            <h3>Time Off Request Update</h3>
-            <p>Your time off request has been <strong>{status}</strong>.</p>
-            
-            <p><strong>Details:</strong></p>
-            <p>Start Date: {start_date}</p>
-            <p>End Date: {end_date}</p>
-            <p>Hours: {hours}</p>
-            
-            <p><strong>Review Notes:</strong> {review_notes or 'No notes provided'}</p>
+                <h2>Time Off Request Update</h2>
+                <p>Hello,</p>
+                <p>Your time off request has been <strong>{status}</strong>.</p>
+                <br>
+                <p><strong>Request Details:</strong></p>
+                <p><strong>Start Date:</strong> {start_date}</p>
+                <p><strong>End Date:</strong> {end_date}</p>
+                <p><strong>Hours:</strong> {hours}</p>
+                <br>
+                <p><strong>Review Notes:</strong></p>
+                <p>{review_notes or 'No notes provided'}</p>
+                <br>
+                <p>Best regards,</p>
+                <p>EA Promos Management Team</p>
             """
             
             try:

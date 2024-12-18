@@ -31,6 +31,9 @@ def change_password(request):
         user = request.user
         employee = user.employee
 
+        # Clear biometric credentials
+        user.biometric_credentials.all().delete()
+
         # Validate and set the new password
         user.set_password(new_password)
         
@@ -83,6 +86,9 @@ def reset_password(request, token):
         new_password = request.data.get('new_password')
         if not new_password:
             return Response({'error': 'New password is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Clear biometric credentials
+        user.biometric_credentials.all().delete()
 
         # Set the new password
         user.set_password(new_password)

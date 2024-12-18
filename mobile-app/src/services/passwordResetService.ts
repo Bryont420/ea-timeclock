@@ -30,6 +30,13 @@ export const resetPassword = async (token: string, newPassword: string) => {
                 force_password_change: false
             }));
 
+            // Clear biometric credentials for this user since password changed
+            const storedData = localStorage.getItem(`biometric_${response.data.username}`);
+            if (storedData) {
+                localStorage.removeItem(`biometric_${response.data.username}`);
+                console.debug('Cleared biometric credentials after password reset');
+            }
+
             return {
                 success: true,
                 data: response.data
