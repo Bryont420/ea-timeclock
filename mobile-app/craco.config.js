@@ -177,8 +177,11 @@ module.exports = {
         if (process.env.ANALYZE === 'true') {
           webpackConfig.plugins.push(
             new BundleAnalyzerPlugin({
-              analyzerMode: 'static',
-              reportFilename: 'bundle-report.html',
+              analyzerMode: 'server',
+              analyzerPort: 8888,
+              openAnalyzer: true,
+              generateStatsFile: true,
+              statsFilename: 'bundle-stats.json',
             })
           );
         }

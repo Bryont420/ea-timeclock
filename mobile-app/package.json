@@ -64,6 +64,7 @@
     "@types/lodash": "^4.14.202",
     "@types/webpack-env": "^1.18.4",
     "compression-webpack-plugin": "^11.1.0",
+    "cross-env": "^7.0.3",
     "css-minimizer-webpack-plugin": "^7.0.0",
     "mini-css-extract-plugin": "^2.9.2",
     "responsive-loader": "^3.1.2",
@@ -77,7 +78,7 @@
     "build": "craco build",
     "test": "craco test",
     "eject": "react-scripts eject",
-    "analyze": "set ANALYZE=true && craco build"
+    "analyze": "cross-env ANALYZE=true craco build"
   },
   "eslintConfig": {
     "extends": [
