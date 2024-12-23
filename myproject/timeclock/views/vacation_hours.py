@@ -35,6 +35,7 @@ def add_vacation_entry(request):
             # Define workday times
             workday_start_time = time(8, 0)
             workday_end_time = time(17, 0)
+            friday_end_time = time(12, 0)
 
             # Calculate total vacation hours
             total_vacation_hours = Decimal('0.00')
@@ -42,6 +43,8 @@ def add_vacation_entry(request):
             while current_date <= end_date:
                 if current_date.weekday() in range(0, 4):
                     total_vacation_hours += Decimal('9.00')
+                elif current_date.weekday() == 4:  # Friday
+                    total_vacation_hours += Decimal('4.00')
                 current_date += timedelta(days=1)
 
             # Check vacation hours remaining
@@ -57,17 +60,22 @@ def add_vacation_entry(request):
                 if current_date.weekday() in range(0, 4):
                     clock_in_time = timezone.make_aware(timezone.datetime.combine(current_date, workday_start_time))
                     clock_out_time = timezone.make_aware(timezone.datetime.combine(current_date, workday_end_time))
-                    
-                    time_entry = TimeEntry.objects.create(
-                        employee=employee,
-                        clock_in_time=clock_in_time,
-                        clock_out_time=clock_out_time,
-                        full_day=True,
-                        is_vacation=True
-                    )
+                elif current_date.weekday() == 4:  # Friday
+                    clock_in_time = timezone.make_aware(timezone.datetime.combine(current_date, workday_start_time))
+                    clock_out_time = timezone.make_aware(timezone.datetime.combine(current_date, friday_end_time))
+                else:
+                    current_date += timedelta(days=1)
+                    continue
 
-                    handle_notes(time_entry, notes_data, request)
+                time_entry = TimeEntry.objects.create(
+                    employee=employee,
+                    clock_in_time=clock_in_time,
+                    clock_out_time=clock_out_time,
+                    full_day=True,
+                    is_vacation=True
+                )
 
+                handle_notes(time_entry, notes_data, request)
                 current_date += timedelta(days=1)
 
             messages.success(request, f'Vacation time entries successfully added for {employee.first_name} {employee.last_name}!')

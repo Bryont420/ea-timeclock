@@ -53,8 +53,6 @@ def handle_notes(time_entry, notes_data, request):
 
         created_by_username = note_data.get('created_by')
 
-
-
         # Fetch or create the note
 
         if note_id:
@@ -131,6 +129,8 @@ def add_holiday_entry(request):
 
             workday_end_time = time(17, 0)
 
+            friday_end_time = time(12, 0)
+
 
 
             for employee_id in employee_ids:
@@ -142,24 +142,20 @@ def add_holiday_entry(request):
                 while current_date <= end_date:
 
                     if current_date.weekday() in range(0, 4):
-
                         clock_in_time = timezone.make_aware(timezone.datetime.combine(current_date, workday_start_time))
-
                         clock_out_time = timezone.make_aware(timezone.datetime.combine(current_date, workday_end_time))
+                    elif current_date.weekday() == 4:
+                        clock_in_time = timezone.make_aware(timezone.datetime.combine(current_date, workday_start_time))
+                        clock_out_time = timezone.make_aware(timezone.datetime.combine(current_date, friday_end_time))
 
-                        time_entry = TimeEntry.objects.create(
+                    time_entry = TimeEntry.objects.create(
+                        employee=employee,
+                        clock_in_time=clock_in_time,
+                        clock_out_time=clock_out_time,
+                        full_day=True
+                    )
 
-                            employee=employee,
-
-                            clock_in_time=clock_in_time,
-
-                            clock_out_time=clock_out_time,
-
-                            full_day=True
-
-                        )
-
-                        handle_notes(time_entry, notes_data, request)
+                    handle_notes(time_entry, notes_data, request)
 
                     current_date += timedelta(days=1)
 
@@ -222,15 +218,10 @@ def add_time_entry(request):
 
 
             time_entry = TimeEntry.objects.create(
-
                 employee=employee,
-
                 clock_in_time=clock_in_time,
-
                 clock_out_time=clock_out_time,
-
                 is_vacation=is_vacation
-
             )
 
 
@@ -386,4 +377,3 @@ def remove_time_entry(request, entry_id):
 
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
-
