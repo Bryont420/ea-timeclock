@@ -2,8 +2,18 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
-import reportWebVitals from './reportWebVitals';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+import reportWebVitals from './utils/webVitals';
+
+// Initialize Google Analytics
+const GA_MEASUREMENT_ID = 'G-TRXWSEHPKL';
+window.gtag('js', new Date().toISOString());
+window.gtag('config', GA_MEASUREMENT_ID, {
+  send_page_view: true,
+  transport_type: 'beacon',
+  anonymize_ip: true,
+  page_load_strategy: 'eager'
+});
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component<
@@ -56,16 +66,6 @@ class ErrorBoundary extends React.Component<
   }
 }
 
-// Performance monitoring function
-const sendToAnalytics = (metric: any) => {
-  // Replace with your analytics service
-  if (process.env.NODE_ENV === 'production') {
-    console.log('Performance Metric:', metric);
-    // Example: Send to analytics service
-    // analytics.send(metric);
-  }
-};
-
 // Create root with error handling
 const container = document.getElementById('root');
 if (!container) {
@@ -116,8 +116,8 @@ root.render(
   </React.StrictMode>
 );
 
-// Monitor performance metrics
-reportWebVitals(sendToAnalytics);
+// Report web vitals
+reportWebVitals();
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

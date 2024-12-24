@@ -89,24 +89,11 @@ const PrivateRoute: React.FC<{ element: React.ReactElement }> = ({ element }) =>
 
 // Main App component
 const App = () => {
-  // Security headers
-  useEffect(() => {
-    // Add security headers
-    const meta = document.createElement('meta');
-    meta.httpEquiv = 'Content-Security-Policy';
-    meta.content = "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline';";
-    document.head.appendChild(meta);
-    
-    return () => {
-      document.head.removeChild(meta);
-    };
-  }, []);
-
   // Remove aria-hidden from root on mount
   useEffect(() => {
-    const root = document.getElementById('root');
-    if (root) {
-      root.removeAttribute('aria-hidden');
+    const rootElement = document.getElementById('root');
+    if (rootElement) {
+      rootElement.removeAttribute('aria-hidden');
     }
   }, []);
 

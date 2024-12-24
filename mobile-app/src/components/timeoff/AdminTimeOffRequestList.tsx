@@ -222,10 +222,6 @@ const AdminTimeOffRequestList: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchRequests();
-  }, []);
-
-  useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);

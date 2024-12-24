@@ -49,7 +49,13 @@ export const LoginContainer: React.FC<LoginContainerProps> = memo(({ children })
                         backgroundColor: theme.palette.mode === 'dark' 
                             ? 'rgba(66, 66, 66, 0.9)' 
                             : 'rgba(255, 255, 255, 0.9)',
-                        color: theme.palette.text.primary
+                        color: theme.palette.text.primary,
+                        transform: 'translateZ(0)',
+                        willChange: 'transform',
+                        minHeight: '300px',
+                        backfaceVisibility: 'hidden',
+                        perspective: 1000,
+                        transition: 'none'
                     }}
                 >
                     {children}

@@ -83,7 +83,26 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
     return (
         <Box component="form" onSubmit={onSubmit} sx={{ width: '100%', maxWidth: 400, mx: 'auto', p: 3 }}>
-            <Typography variant="h5" component="h1" gutterBottom align="center">
+            <Typography 
+                variant="h5" 
+                component="h1" 
+                gutterBottom 
+                align="center"
+                sx={{
+                    fontWeight: 500,
+                    fontDisplay: 'swap',
+                    minHeight: '2rem',
+                    mb: 3,
+                    // Optimize paint
+                    transform: 'translateZ(0)',
+                    willChange: 'transform',
+                    // Prevent layout shift
+                    visibility: 'visible',
+                    // Improve text rendering
+                    WebkitFontSmoothing: 'antialiased',
+                    textRendering: 'optimizeLegibility'
+                }}
+            >
                 Time Clock
             </Typography>
             
