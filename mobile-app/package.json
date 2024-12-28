@@ -28,7 +28,7 @@
     "glob": "^9.3.5",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.1",
-    "lucide-react": "^0.462.0",
+    "lucide-react": "^0.468.0",
     "nth-check": "^2.1.1",
     "postcss": "^8.4.32",
     "puppeteer": "^22.8.2",
