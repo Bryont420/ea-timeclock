@@ -45,8 +45,8 @@ export const themes: ThemeOption[] = [
         main: '#dc004e',
       },
       background: {
-        default: '#f5f5f5',
-        paper: '#fff',
+        default: '#f5f5f5DC',
+        paper: '#ffffffDC',
       },
       text: {
         primary: '#000000',
@@ -75,8 +75,8 @@ export const themes: ThemeOption[] = [
         main: '#f48fb1',
       },
       background: {
-        default: '#303030',
-        paper: '#424242',
+        default: '#303030DC',
+        paper: '#424242DC',
       },
       text: {
         primary: '#ffffff',
@@ -105,8 +105,8 @@ export const themes: ThemeOption[] = [
         main: '#ff8f00',
       },
       background: {
-        default: '#f1f8e9',
-        paper: '#ffffff',
+        default: '#f1f8e9DC',
+        paper: '#ffffffDC',
       },
       text: {
         primary: '#000000',
@@ -135,8 +135,8 @@ export const themes: ThemeOption[] = [
         main: '#00acc1',
       },
       background: {
-        default: '#263238',
-        paper: '#37474f',
+        default: '#263238DC',
+        paper: '#37474fDC',
       },
       text: {
         primary: '#ffffff',
@@ -165,8 +165,8 @@ export const themes: ThemeOption[] = [
         main: '#f57c00',
       },
       background: {
-        default: '#fff3e0',
-        paper: '#ffffff',
+        default: '#fff3e0DC',
+        paper: '#ffffffDC',
       },
       text: {
         primary: '#000000',
@@ -195,8 +195,8 @@ export const themes: ThemeOption[] = [
         main: '#ff7043',
       },
       background: {
-        default: '#303030',
-        paper: '#424242',
+        default: '#303030DC',
+        paper: '#424242DC',
       },
       text: {
         primary: '#ffffff',
@@ -225,8 +225,8 @@ export const themes: ThemeOption[] = [
         main: '#8bc34a',
       },
       background: {
-        default: '#1b5e20',
-        paper: '#004A00',
+        default: '#1b5e20DC',
+        paper: '#004A00DC',
       },
       text: {
         primary: '#ffffff',
@@ -255,8 +255,8 @@ export const themes: ThemeOption[] = [
         main: '#f4511e',
       },
       background: {
-        default: '#fff8e1',
-        paper: '#ffffff',
+        default: '#fff8e1DC',
+        paper: '#ffffffDC',
       },
       text: {
         primary: '#000000',
@@ -285,8 +285,8 @@ export const themes: ThemeOption[] = [
         main: '#ba68c8',
       },
       background: {
-        default: '#f3e5f5',
-        paper: '#ffffff',
+        default: '#f3e5f5DC',
+        paper: '#ffffffDC',
       },
       text: {
         primary: '#000000',
@@ -315,8 +315,8 @@ export const themes: ThemeOption[] = [
         main: '#3949ab',
       },
       background: {
-        default: '#0d47a1',
-        paper: '#1e88e5',
+        default: '#0d47a1DC',
+        paper: '#1e88e5DC',
       },
       text: {
         primary: '#ffffff',
@@ -345,8 +345,8 @@ export const themes: ThemeOption[] = [
         main: '#f06292',
       },
       background: {
-        default: '#fce4ec',
-        paper: '#ffffff',
+        default: '#fce4ecDC',
+        paper: '#ffffffDC',
       },
       text: {
         primary: '#000000',
@@ -375,8 +375,8 @@ export const themes: ThemeOption[] = [
         main: '#d81b60',
       },
       background: {
-        default: '#4a0072',
-        paper: '#6a1b9a',
+        default: '#4a0072DC',
+        paper: '#6a1b9aDC',
       },
       text: {
         primary: '#ffffff',
