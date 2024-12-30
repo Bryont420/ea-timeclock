@@ -142,11 +142,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         authLogout();
         setUser(null);
         setIsAuthenticated(false);
+        // Remove your app-specific session items
         sessionStorage.removeItem('user');
-        // Force clear any remaining state
         sessionStorage.removeItem('token');
         sessionStorage.removeItem('refresh_token');
+          
+        // --- Clear Google Analytics session items ---
+        // This removes the GA4 session keys you created in Analytics.ts
+        sessionStorage.removeItem('_ga_sessionId');
+        sessionStorage.removeItem('_ga_sessionStart');
+          
+        // If you also want to remove offline analytics events saved in localStorage:
+        localStorage.removeItem('_ga_offline_events');
+          
+        // If you want to reset the GA Client ID on logout, remove it from localStorage:
+        localStorage.removeItem('_ga_clientId');
+          
+        // Finally, clear any other sessionStorage items (optional if you want a blanket reset)
         sessionStorage.clear();
+
     }, []);
 
     return (
