@@ -4,16 +4,10 @@ import './index.css';
 import App from './App';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import reportWebVitals from './utils/webVitals';
+import { analytics } from './services/analytics';
 
-// Initialize Google Analytics
-const GA_MEASUREMENT_ID = 'G-TRXWSEHPKL';
-window.gtag('js', new Date().toISOString());
-window.gtag('config', GA_MEASUREMENT_ID, {
-  send_page_view: true,
-  transport_type: 'beacon',
-  anonymize_ip: true,
-  page_load_strategy: 'eager'
-});
+// Initialize analytics
+analytics.pageView(window.location.pathname);
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component<
