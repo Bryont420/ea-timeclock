@@ -1,9 +1,29 @@
+/**
+ * @fileoverview Login page component that provides the main authentication interface.
+ * Handles both traditional username/password login and biometric authentication for
+ * mobile devices. Integrates with useLoginLogic hook for core functionality.
+ */
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LoginContainer } from '../components/auth/LoginContainer';
 import { LoginForm } from '../components/auth/LoginForm';
 import { useLoginLogic } from '../hooks/useLoginLogic';
 
+/**
+ * Login page component that handles user authentication.
+ * Features:
+ * - Traditional username/password login
+ * - Biometric authentication for mobile devices
+ * - Automatic navigation based on user type:
+ *   - Admin users to admin dashboard
+ *   - Users requiring password change to change page
+ *   - Regular users to employee dashboard
+ * - Integration with useLoginLogic hook for core functionality
+ * - Error handling and loading states
+ * 
+ * @returns The rendered Login page
+ */
 export const Login: React.FC = () => {
     const navigate = useNavigate();
 
@@ -19,6 +39,12 @@ export const Login: React.FC = () => {
         handleBiometricLogin: handleBiometricLoginLogic
     } = useLoginLogic();
 
+    /**
+     * Handles form submission for traditional login.
+     * Processes the login response and navigates based on user type.
+     * 
+     * @param e - Form event with optional biometric properties
+     */
     const handleLogin = async (e: React.FormEvent & { isBiometric?: boolean; biometricCredential?: any }) => {
         e.preventDefault();
         const response = await handleSubmit(e);
@@ -38,6 +64,10 @@ export const Login: React.FC = () => {
         }
     };
 
+    /**
+     * Handles biometric authentication login attempt.
+     * Processes the biometric login response and navigates based on user type.
+     */
     const handleBiometricLogin = async () => {
         try {
             const response = await handleBiometricLoginLogic();

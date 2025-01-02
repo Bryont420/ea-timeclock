@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Time off request form component that provides a comprehensive
+ * interface for creating and editing time off requests. Features date selection,
+ * request type selection, and validation with blackout period handling.
+ */
+
 import React, { useState } from 'react';
 import {
   Box,
@@ -23,6 +29,13 @@ import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { format, parseISO, differenceInMinutes } from 'date-fns';
 import { createTimeOffRequest, updateTimeOffRequest, TimeOffRequest, CreateTimeOffRequest } from '../../services/timeoff';
 
+/**
+ * Helper function to determine if a date falls within the blackout period.
+ * Blackout period is from February 1st through June 9th.
+ * 
+ * @param date - Date to check
+ * @returns True if date is in blackout period, false otherwise
+ */
 const isDateBlackedOut = (date: Date | null): boolean => {
   if (!date) return false;
   const month = date.getMonth(); // 0-based (0 = January)
@@ -35,10 +48,13 @@ const isDateBlackedOut = (date: Date | null): boolean => {
 };
 
 export const TimeOffRequestForm: React.FC<{
-  onSubmit: () => void;
-  onClose: () => void;
-  initialRequest?: TimeOffRequest;
-  isDialog?: boolean;
+    onSubmit: () => void;
+    /** Callback function to close the form */
+    onClose: () => void;
+    /** Initial request data for editing mode */
+    initialRequest?: TimeOffRequest;
+    /** Whether the form is displayed in a dialog */
+    isDialog?: boolean;
 }> = ({
   onSubmit,
   onClose,
@@ -66,6 +82,14 @@ export const TimeOffRequestForm: React.FC<{
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  /**
+   * Calculates the total hours of the time off request.
+   * 
+   * @param start - Start date or time
+   * @param end - End date or time
+   * @param isPartial - Whether the request is for a partial day
+   * @returns Total hours of the request
+   */
   const calculateHours = (start: Date, end: Date, isPartial: boolean = false) => {
     if (isPartial) {
       // For partial day, calculate hours between start and end time
@@ -91,6 +115,11 @@ export const TimeOffRequestForm: React.FC<{
     }
   };
 
+  /**
+   * Handles form submission.
+   * 
+   * @param e - Form event
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     

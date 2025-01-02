@@ -90,9 +90,9 @@ const AdminTimeOffRequestList: React.FC = () => {
 
   /**
    * Fetches time off requests from the API.
+   * Updates the requests state and handles loading/error states.
    * 
    * @async
-   * @function fetchRequests
    */
   const fetchRequests = async () => {
     setLoading(true);
@@ -110,10 +110,10 @@ const AdminTimeOffRequestList: React.FC = () => {
 
   /**
    * Handles the review click event for a time off request.
+   * Opens the review dialog with the selected request and action.
    * 
-   * @param {TimeOffRequest} request - The time off request to review.
-   * @param {'approved' | 'denied'} action - The review action (approved or denied).
-   * @function handleReviewClick
+   * @param request - The time off request to review
+   * @param action - The review action (approved or denied)
    */
   const handleReviewClick = (request: TimeOffRequest, action: 'approved' | 'denied') => {
     setSelectedRequest(request);
@@ -123,9 +123,9 @@ const AdminTimeOffRequestList: React.FC = () => {
 
   /**
    * Handles the review submit event for a time off request.
+   * Submits the review decision to the API and updates local state.
    * 
    * @async
-   * @function handleReviewSubmit
    */
   const handleReviewSubmit = async () => {
     if (!selectedRequest || !reviewAction) return;
@@ -165,28 +165,10 @@ const AdminTimeOffRequestList: React.FC = () => {
   };
 
   /**
-   * Formats a date string to a human-readable format.
+   * Gets the color for a request type chip.
    * 
-   * @param {string} dateString - The date string to format.
-   * @returns {string} The formatted date string.
-   * @function formatDate
-   */
-  const formatDate = (dateString: string) => {
-    try {
-      const date = parseISO(dateString);
-      return format(date, 'MM/dd/yyyy');
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return dateString;
-    }
-  };
-
-  /**
-   * Returns the color for a request type.
-   * 
-   * @param {TimeOffRequest['request_type']} type - The request type.
-   * @returns {string} The color for the request type.
-   * @function getRequestTypeColor
+   * @param type - The request type
+   * @returns The Material-UI color for the chip
    */
   const getRequestTypeColor = (type: TimeOffRequest['request_type']) => {
     switch (type) {
@@ -202,11 +184,10 @@ const AdminTimeOffRequestList: React.FC = () => {
   };
 
   /**
-   * Returns the color for a request status.
+   * Gets the color for a request status chip.
    * 
-   * @param {TimeOffRequest['status']} status - The request status.
-   * @returns {string} The color for the request status.
-   * @function getStatusColor
+   * @param status - The request status
+   * @returns The Material-UI color for the chip
    */
   const getStatusColor = (status: TimeOffRequest['status']) => {
     switch (status) {
@@ -218,6 +199,22 @@ const AdminTimeOffRequestList: React.FC = () => {
         return 'warning';
       default:
         return 'default';
+    }
+  };
+
+  /**
+   * Formats a date string to a readable format.
+   * 
+   * @param dateString - The ISO date string to format
+   * @returns The formatted date string
+   */
+  const formatDate = (dateString: string) => {
+    try {
+      const date = parseISO(dateString);
+      return format(date, 'MM/dd/yyyy');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateString;
     }
   };
 

@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Dashboard page component that serves as the main interface for employees.
+ * Displays employee information and provides quick access to common actions like
+ * clock in/out and time off requests.
+ */
+
 import React, { useEffect, useState } from 'react';
 import { 
     Container, 
@@ -11,6 +17,17 @@ import { ErrorAlert } from '../components/common/ErrorAlert';
 import EmployeeInfoCard from '../components/dashboard/EmployeeInfoCard';
 import QuickActionsPanel from '../components/dashboard/QuickActionsPanel';
 
+/**
+ * Dashboard page component that displays employee information and actions.
+ * Features:
+ * - Displays employee information card
+ * - Shows quick action buttons for common tasks
+ * - Handles loading states and error conditions
+ * - Auto-fetches employee data on mount
+ * - Prevents duplicate data fetches
+ * 
+ * @returns The rendered Dashboard page
+ */
 export const Dashboard: React.FC = () => {
     const [employee, setEmployee] = useState<EmployeeInfo | null>(null);
     const [loading, setLoading] = useState(true);
@@ -18,6 +35,10 @@ export const Dashboard: React.FC = () => {
     const { user } = useAuth();
     const [isDataFetched, setIsDataFetched] = useState(false);
 
+    /**
+     * Effect hook to fetch employee data on component mount.
+     * Only fetches data once and handles cleanup for unmounting.
+     */
     useEffect(() => {
         let isMounted = true;
 

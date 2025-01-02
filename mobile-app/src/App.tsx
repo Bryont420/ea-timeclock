@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Main application component and routing configuration.
+ * Implements the core application structure with React Router,
+ * context providers, and lazy-loaded components for optimal performance.
+ */
+
 import React, { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -15,20 +21,35 @@ import {
   AdapterDateFns
 } from './utils/muiImports';
 
-// React Router future flags
+/**
+ * React Router v7 configuration flags for future compatibility
+ */
 const routerFutureConfig = {
   v7_startTransition: true,
   v7_relativeSplatPath: true
 };
 
-// Loading component
+/**
+ * Global loading fallback component.
+ * Displays a centered circular progress indicator.
+ */
 const LoadingFallback = () => (
   <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
     <CircularProgress />
   </Box>
 );
 
-// Lazy load page components with error boundaries and chunk naming
+/**
+ * Enhanced lazy loading with retry mechanism.
+ * Implements a one-time retry on chunk loading failures by
+ * forcing a page refresh. This helps recover from:
+ * - Cached chunk mismatches after deployments
+ * - Network interruptions during chunk loading
+ * 
+ * @param componentImport - Dynamic import function for the component
+ * @param chunkName - Webpack chunk name for code splitting
+ * @returns Lazy loaded component with retry capability
+ */
 const lazyWithRetry = (componentImport: () => Promise<any>, chunkName: string) => 
   lazy(async () => {
     const pageHasAlreadyBeenForceRefreshed = JSON.parse(
@@ -60,7 +81,13 @@ const PasswordResetRequest = lazyWithRetry(() => import(/* webpackChunkName: "pa
 const PasswordReset = lazyWithRetry(() => import(/* webpackChunkName: "password-reset" */ './pages/PasswordReset').then(module => ({ default: module.default })), 'password-reset');
 const ForcePasswordChange = lazyWithRetry(() => import(/* webpackChunkName: "force-password-change" */ './pages/ForcePasswordChange'), 'force-password-change');
 
-// Private Route component
+/**
+ * Protected route component that requires authentication.
+ * Redirects to login if user is not authenticated.
+ * 
+ * @param element - Component to render if authenticated
+ * @returns Protected route element or redirect
+ */
 const PrivateRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
   const { isAuthenticated, user } = useAuth();
 
@@ -87,7 +114,16 @@ const PrivateRoute: React.FC<{ element: React.ReactElement }> = ({ element }) =>
   return <Layout>{element}</Layout>;
 };
 
-// Main App component
+/**
+ * Main application component.
+ * Implements:
+ * - Application routing with React Router
+ * - Context providers for global state
+ * - Lazy loading with suspense boundaries
+ * - Protected routes for authenticated content
+ * - Material-UI integration
+ * - Date localization
+ */
 const App = () => {
   // Remove aria-hidden from root on mount
   useEffect(() => {

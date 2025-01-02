@@ -1,7 +1,24 @@
-// Environment-based configuration management
+/**
+ * @fileoverview Application configuration and environment settings.
+ * Manages environment-specific configuration including API endpoints,
+ * security settings, and application constants. Handles development
+ * and production environments with appropriate security measures.
+ */
+
+/**
+ * Environment detection flag
+ */
 const isDevelopment = process.env.NODE_ENV === 'development';
 
-// Dynamically determine the API base URL based on environment and hostname
+/**
+ * Determines the appropriate API base URLs based on environment and hostname.
+ * Prioritizes:
+ * 1. Environment variables if provided
+ * 2. Local development URLs for localhost
+ * 3. Production URLs for remote access
+ * 
+ * @returns Object containing API and static content URLs
+ */
 const getApiBaseUrl = () => {
     // Use environment variables if provided
     if (process.env.REACT_APP_API_URL) {
@@ -31,7 +48,13 @@ const getApiBaseUrl = () => {
 
 const urls = getApiBaseUrl();
 
-// Ensure URLs are using HTTPS in production
+/**
+ * Ensures URLs use HTTPS in production environment.
+ * Only allows HTTP in development mode.
+ * 
+ * @param url - URL to check and potentially modify
+ * @returns URL with appropriate protocol
+ */
 const enforceHttps = (url: string) => {
     if (!isDevelopment && url.startsWith('http://')) {
         return url.replace('http://', 'https://');
@@ -39,26 +62,33 @@ const enforceHttps = (url: string) => {
     return url;
 };
 
+/** Base URL for API endpoints */
 export const API_BASE_URL = enforceHttps(urls.api);
+
+/** Base URL for static content */
 export const STATIC_BASE_URL = enforceHttps(urls.static);
 
-// Maximum file upload size in bytes (5MB)
+/** Maximum allowed file upload size (5MB) */
 export const MAX_UPLOAD_SIZE = 5 * 1024 * 1024;
 
-// Token refresh interval in milliseconds (4 minutes)
+/** JWT token refresh interval (4 minutes) */
 export const TOKEN_REFRESH_INTERVAL = 4 * 60 * 1000;
 
-// Request timeout in milliseconds (30 seconds)
-export const REQUEST_TIMEOUT = 30000;
+/** API request timeout (30 seconds) */
+export const REQUEST_TIMEOUT = 30 * 1000;
 
-// Cache durations in milliseconds
+/**
+ * Cache durations in milliseconds
+ */
 export const CACHE_DURATIONS = {
     EMPLOYEES: 5 * 60 * 1000,        // 5 minutes
     TIME_ENTRIES: 30 * 1000,         // 30 seconds
     USER_PROFILE: 15 * 60 * 1000,    // 15 minutes
 };
 
-// Performance limits
+/**
+ * Performance limits
+ */
 export const PERFORMANCE_LIMITS = {
     MAX_PAGE_SIZE: 100,
     MAX_DATE_RANGE_DAYS: 90,
@@ -66,7 +96,9 @@ export const PERFORMANCE_LIMITS = {
     MAX_RETRY_ATTEMPTS: 3,
 };
 
-// Error messages
+/**
+ * Error messages
+ */
 export const ERROR_MESSAGES = {
     INVALID_DATE_RANGE: 'Date range must be within 90 days',
     NETWORK_ERROR: 'Network error occurred. Please try again',
@@ -74,6 +106,11 @@ export const ERROR_MESSAGES = {
     SESSION_EXPIRED: 'Your session has expired. Please log in again',
 };
 
+/**
+ * API endpoint configurations.
+ * Organized by feature area (auth, employee, admin, etc.)
+ * with nested route definitions.
+ */
 export const API_ENDPOINTS = {
     AUTH: {
         LOGIN: '/api/login/',

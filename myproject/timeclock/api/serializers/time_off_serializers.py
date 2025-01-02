@@ -134,7 +134,7 @@ class TimeOffRequestSerializer(serializers.ModelSerializer):
         next_year = today.year + 1
         is_future_request = data['start_date'].year == next_year or data['end_date'].year == next_year
 
-        if is_future_request:
+        if is_future_request and data['request_type'] in ['vacation', 'sick']:
             years_employed = next_year - employee.hire_date.year
             if today >= employee.hire_date.replace(year=today.year):
                 years_employed = next_year - employee.hire_date.year

@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Custom hook that manages login form logic, including biometric
+ * authentication support for mobile devices. Handles form state, validation,
+ * error handling, and authentication flow.
+ */
+
 import { useState, useEffect } from 'react';
 import { login } from '../services/auth';
 import { useBackground } from '../contexts/BackgroundContext';
@@ -7,6 +13,24 @@ import { isMobileDevice } from '../utils/deviceDetection';
 import { verifyBiometric, hasBiometricRegistered, checkBiometricCapability, registerBiometric } from '../utils/biometricAuth';
 import { getEmployeeInfo } from '../services/employee';
 
+/**
+ * Custom hook that provides login form functionality.
+ * Features:
+ * - Username/password form state management
+ * - Biometric authentication support for mobile devices
+ * - Error handling and validation
+ * - Loading state management
+ * - Username persistence for mobile devices
+ * - Background refresh after successful login
+ * - Employee info fetching for non-admin users
+ * 
+ * @returns Object containing:
+ * - Form state (username, password)
+ * - Form setters (setUsername, setPassword)
+ * - Error and loading states
+ * - Form submission handler
+ * - Biometric authentication state and handlers
+ */
 export const useLoginLogic = () => {
     const [username, setUsername] = useState(() => {
         if (isMobileDevice()) {
@@ -22,7 +46,10 @@ export const useLoginLogic = () => {
     const { refreshBackground } = useBackground();
     const { setIsAuthenticated, setUser } = useAuth();
 
-    // Check biometric availability on mount and when username changes
+    /**
+     * Checks biometric authentication availability on component mount
+     * and when username changes. Updates biometric availability state.
+     */
     useEffect(() => {
         const checkBiometric = async () => {
             try {
@@ -46,6 +73,12 @@ export const useLoginLogic = () => {
         checkBiometric();
     }, [username]);
 
+    /**
+     * Handles form submission for both password and biometric login.
+     * Validates credentials, updates authentication state, and handles errors.
+     * 
+     * @param e - Form event with optional biometric properties
+     */
     const handleSubmit = async (e: React.FormEvent & { isBiometric?: boolean; biometricCredential?: any }) => {
         e.preventDefault();
         setError('');
@@ -118,6 +151,10 @@ export const useLoginLogic = () => {
         }
     };
 
+    /**
+     * Handles biometric login flow.
+     * Verifies biometric credentials, handles errors, and triggers form submission.
+     */
     const handleBiometricLogin = async () => {
         if (!username.trim()) {
             setError('Please enter your username');

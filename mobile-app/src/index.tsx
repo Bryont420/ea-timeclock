@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Application entry point and root component initialization.
+ * Sets up the React application with error boundaries, service worker,
+ * and performance monitoring. Handles global error cases and analytics.
+ */
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
@@ -9,7 +15,11 @@ import { analytics } from './services/analytics';
 // Initialize analytics
 analytics.pageView(window.location.pathname);
 
-// Error Boundary Component
+/**
+ * Global error boundary component.
+ * Catches and handles runtime errors throughout the application.
+ * Provides a user-friendly fallback UI and error reporting.
+ */
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
   { hasError: boolean; error: Error | null }
@@ -19,10 +29,19 @@ class ErrorBoundary extends React.Component<
     this.state = { hasError: false, error: null };
   }
 
+  /**
+   * Updates state when an error occurs
+   * @param error - The error that was caught
+   */
   static getDerivedStateFromError(error: Error) {
     return { hasError: true, error };
   }
 
+  /**
+   * Handles error reporting and logging
+   * @param error - The error that occurred
+   * @param errorInfo - Additional error information from React
+   */
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Log error to your preferred error tracking service
     console.error('Application Error:', error, errorInfo);

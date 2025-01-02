@@ -1,37 +1,70 @@
+/**
+ * @fileoverview Theme configuration for the application using Material-UI's theme system.
+ * Provides a collection of predefined themes with consistent color palettes and styling.
+ * Each theme includes color schemes for primary and secondary colors, background,
+ * text, success states, and hover effects.
+ */
+
 import { PaletteOptions } from '@mui/material';
 
+/**
+ * Interface for theme configuration options.
+ * Extends Material-UI's PaletteOptions to ensure type safety
+ * and consistent theme structure across the application.
+ */
 export interface ThemeOption {
-  id: string;
-  name: string;
-  palette: PaletteOptions & {
-    primary: {
-      main: string;
+    /** Unique identifier for the theme */
+    id: string;
+    /** Display name of the theme */
+    name: string;
+    /** Color palette configuration */
+    palette: PaletteOptions & {
+        /** Primary color scheme */
+        primary: {
+            main: string;
+        };
+        /** Secondary color scheme */
+        secondary: {
+            main: string;
+        };
+        /** Theme mode (light/dark) */
+        mode: 'light' | 'dark';
+        /** Background colors */
+        background: {
+            default: string;
+            paper: string;
+        };
+        /** Text colors */
+        text: {
+            primary: string;
+            secondary: string;
+        };
+        /** Success state colors */
+        success: {
+            light: string;
+            main: string;
+            dark: string;
+            contrastText: string;
+        };
+        /** Action colors */
+        action: {
+            hover: string;
+        };
     };
-    secondary: {
-      main: string;
-    };
-    mode: 'light' | 'dark';
-    background: {
-      default: string;
-      paper: string;
-    };
-    text: {
-      primary: string;
-      secondary: string;
-    };
-    success: {
-      light: string;
-      main: string;
-      dark: string;
-      contrastText: string;
-    };
-    action: {
-      hover: string;
-    };
-  };
 }
 
-// Predefined themes
+/**
+ * Collection of predefined themes available in the application.
+ * Each theme provides a complete color palette and styling configuration:
+ * 
+ * Light Theme: Classic light mode with blue primary color
+ * Dark Theme: Modern dark mode with light blue accents
+ * Nature Theme: Earth-toned light theme with green primary color
+ * Ocean Theme: Deep blue dark theme inspired by ocean depths
+ * Sunrise Theme: Warm light theme with orange accents
+ * Sunset Theme: Dark theme with warm orange/red colors
+ * Lavender Theme: Soft purple light theme for a calm interface
+ */
 export const themes: ThemeOption[] = [
   {
     id: 'light',

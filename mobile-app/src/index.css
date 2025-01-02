@@ -1,3 +1,9 @@
+/**
+ * Global application styles
+ * Contains base styles, typography, and PWA-specific components
+ */
+
+/* Base styles and typography */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -7,11 +13,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Code block typography */
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
 
+/* PWA install button styles */
 .install-button {
   position: fixed;
   bottom: 20px;
@@ -26,18 +34,22 @@ code {
   z-index: 1000;
 }
 
+/* Install button hover state */
 .install-button:hover {
   background-color: #1565c0;
 }
 
+/* Open app button variant */
 .install-button.open-app {
   background-color: #4caf50;
 }
 
+/* Open app button hover state */
 .install-button.open-app:hover {
   background-color: #388e3c;
 }
 
+/* Update notification styles */
 .update-notification {
   position: fixed;
   top: 20px;
@@ -53,6 +65,7 @@ code {
   gap: 8px;
 }
 
+/* Update notification buttons */
 .update-notification button {
   padding: 8px 16px;
   background-color: #1976d2;
@@ -62,10 +75,7 @@ code {
   cursor: pointer;
 }
 
-.update-notification button:hover {
-  background-color: #1565c0;
-}
-
+/* Install banner and open in app banner styles */
 .install-banner, .open-in-app-banner {
   position: fixed;
   top: 0;
@@ -81,6 +91,7 @@ code {
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
+/* Install banner and open in app banner buttons */
 .install-banner button, .open-in-app-banner button {
   background: white;
   color: #1976d2;
@@ -92,20 +103,24 @@ code {
   margin-left: 8px;
 }
 
+/* Install banner and open in app banner button hover state */
 .install-banner button:hover, .open-in-app-banner button:hover {
   background: #f5f5f5;
 }
 
+/* Install banner and open in app banner close button styles */
 .install-banner .close-button, .open-in-app-banner .close-button {
   background: transparent;
   color: white;
   padding: 4px 8px;
 }
 
+/* Install banner and open in app banner close button hover state */
 .install-banner .close-button:hover, .open-in-app-banner .close-button:hover {
   background: rgba(255,255,255,0.1);
 }
 
+/* Button container styles */
 .button-container {
   display: flex;
   align-items: center;

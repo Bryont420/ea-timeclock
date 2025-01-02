@@ -191,6 +191,10 @@ DEFAULT_EMPLOYEE_PASSWORD = os.getenv('DEFAULT_EMPLOYEE_PASSWORD')
 # Application Settings
 APP_URL = 'https://ea-time-clock.duckdns.org:1832'
 
+# Email notification settings
+ENABLE_EMAIL_NOTIFICATIONS = False
+AUTO_APPROVE_TIME_OFF = False
+
 # CORS settings
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [

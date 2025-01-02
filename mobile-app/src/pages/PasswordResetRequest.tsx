@@ -1,9 +1,26 @@
+/**
+ * @fileoverview PasswordResetRequest page component that provides an interface for users
+ * to request a password reset. Collects user ID and email, validates the input, and
+ * sends a reset request to the server.
+ */
+
 import React, { useState } from 'react';
 import { TextField, Button, Typography, Alert, Box } from '@mui/material';
 import { requestPasswordReset } from '../services/passwordResetService';
 import { LoginContainer } from '../components/auth/LoginContainer';
 import { useNavigate } from 'react-router-dom';
 
+/**
+ * PasswordResetRequest page component that handles password reset requests.
+ * Features:
+ * - User ID and email input validation
+ * - Server-side request handling
+ * - Success/error message display
+ * - Automatic navigation to login page after success
+ * - Responsive design for different screen sizes
+ * 
+ * @returns The rendered PasswordResetRequest page
+ */
 const PasswordResetRequest: React.FC = () => {
   const [userId, setUserId] = useState('');
   const [email, setEmail] = useState('');
@@ -11,6 +28,12 @@ const PasswordResetRequest: React.FC = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  /**
+   * Handles form submission for password reset request.
+   * Sends request to server and handles response/errors.
+   * 
+   * @param event - Form submission event
+   */
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setMessage('');

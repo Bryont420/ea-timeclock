@@ -1,6 +1,19 @@
 <!DOCTYPE html>
+<!--
+  Time Clock PWA - Main HTML Template
+  
+  Features:
+  - Progressive Web App (PWA) support
+  - Mobile-first responsive design
+  - Offline capability
+  - Theme color and viewport configuration
+  - Web app manifest integration
+  - iOS specific meta tags
+  - Service worker registration
+-->
 <html lang="en">
   <head>
+    <!-- Character encoding -->
     <meta charset="utf-8">
     <!-- Resource Hints -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
@@ -26,24 +39,24 @@
       }
     </style>
     
-  <!-- Critical CSS for header -->
-  <style>
-    .MuiTypography-h5 {
-      margin: 0;
-      font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-      font-weight: 400;
-      font-size: 1.5rem;
-      line-height: 1.334;
-      letter-spacing: 0em;
-    }
-    .MuiTypography-alignCenter {
-      text-align: center;
-    }
-  </style> 
-  <!-- Non-critical font loading -->
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap" as="style">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;500;700&display=swap" media="print" onload="this.media='all'">
+    <!-- Critical CSS for header -->
+    <style>
+      .MuiTypography-h5 {
+        margin: 0;
+        font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+        font-weight: 400;
+        font-size: 1.5rem;
+        line-height: 1.334;
+        letter-spacing: 0em;
+      }
+      .MuiTypography-alignCenter {
+        text-align: center;
+      }
+    </style> 
+    <!-- Non-critical font loading -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap" as="style">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;500;700&display=swap" media="print" onload="this.media='all'">
     
     <!-- Meta Tags -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -58,11 +71,38 @@
     <link rel="apple-touch-icon" href="/logo192.png">
     <link rel="manifest" href="/manifest.json">
     
+    <!-- Preconnect to API domain for faster loading -->
+    <link rel="preconnect" href="https://ea-time-clock.duckdns.org:1832" />
+    
+    <!-- Offline page styles -->
+    <style>
+      .offline-message {
+        text-align: center;
+        padding: 20px;
+        margin: 20px;
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 4px;
+        color: #721c24;
+      }
+    </style>
+    
     <title>Time Clock (Admin)</title>
   </head>
   <body>
+    <!-- No JavaScript warning -->
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    
+    <!-- Root element for React application -->
     <div id="root"></div>
+    
+    <!-- Offline fallback content -->
+    <div id="offline-content" style="display:none">
+      <div class="offline-message">
+        <h2>You are offline</h2>
+        <p>Please check your internet connection and try again.</p>
+      </div>
+    </div>
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.

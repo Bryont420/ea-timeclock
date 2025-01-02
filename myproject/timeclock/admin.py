@@ -54,18 +54,37 @@ def password_changes(modeladmin, request, queryset):
 	
 # Customize the EmployeeAdmin
 class EmployeeAdmin(admin.ModelAdmin):
-    list_display = ('first_name', 'last_name', 'employee_id', 'clocked_in', 'theme_id')
+    list_display = ('first_name', 'last_name', 'employee_id', 'clocked_in', 'theme_id', 
+                   'vacation_hours_display', 'future_vacation_hours_display',
+                   'sick_hours_display', 'future_sick_hours_display')
     list_filter = ('clocked_in', 'last_name', 'theme_id')
     search_fields = ('first_name', 'last_name', 'employee_id')
+    readonly_fields = ('future_vacation_hours_used', 'future_sick_hours_used')
 
     # Register the custom actions
     actions = [mark_as_clocked_in, mark_as_clocked_out, vacation_not_allocated, vacation_allocated, sick_not_allocated, sick_allocated, password_changes]
-	
+    
     def get_queryset(self, request):
         # Get the default queryset
         qs = super().get_queryset(request)
         # Order by clocked_in (True first), then last_name alphabetically
         return qs.order_by('-clocked_in', 'last_name', 'first_name')
+
+    def vacation_hours_display(self, obj):
+        return f"{obj.vacation_hours_allocated - obj.vacation_hours_used:.2f} / {obj.vacation_hours_allocated:.2f}"
+    vacation_hours_display.short_description = "Vacation Hours (Remaining/Total)"
+
+    def future_vacation_hours_display(self, obj):
+        return f"{obj.future_vacation_hours_used:.2f}"
+    future_vacation_hours_display.short_description = "Future Vacation Hours Used"
+
+    def sick_hours_display(self, obj):
+        return f"{obj.sick_hours_allocated - obj.sick_hours_used:.2f} / {obj.sick_hours_allocated:.2f}"
+    sick_hours_display.short_description = "Sick Hours (Remaining/Total)"
+
+    def future_sick_hours_display(self, obj):
+        return f"{obj.future_sick_hours_used:.2f}"
+    future_sick_hours_display.short_description = "Future Sick Hours Used"
 
 class NoteInlineForm(forms.ModelForm):
     class Meta:

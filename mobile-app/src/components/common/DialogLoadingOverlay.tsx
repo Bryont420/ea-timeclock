@@ -1,10 +1,32 @@
+/**
+ * @fileoverview Dialog loading overlay component that displays a loading spinner
+ * with a semi-transparent background, specifically designed for use within
+ * Material-UI Dialog components.
+ */
+
 import React from 'react';
 import { Box, CircularProgress } from '@mui/material';
 
+/**
+ * Props interface for the DialogLoadingOverlay component.
+ */
 interface DialogLoadingOverlayProps {
+    /** Whether the loading overlay is visible */
     open: boolean;
 }
 
+/**
+ * DialogLoadingOverlay component that provides a loading indicator for dialogs.
+ * Features:
+ * - Semi-transparent dark background
+ * - Centered loading spinner
+ * - Proper z-index handling for dialog context
+ * - Conditional rendering based on open state
+ * 
+ * @param props - Component props
+ * @param props.open - Whether to show the loading overlay
+ * @returns The dialog loading overlay component
+ */
 export const DialogLoadingOverlay: React.FC<DialogLoadingOverlayProps> = ({ open }) => {
     if (!open) return null;
     

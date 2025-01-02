@@ -1,10 +1,33 @@
+/**
+ * @fileoverview Service Worker registration and lifecycle management.
+ * Handles the registration, updates, and installation of the service worker.
+ * Includes PWA install prompt and banner implementation.
+ */
+
+/**
+ * Configuration type for service worker callbacks
+ */
 type Config = {
+  /**
+   * Optional callback function to be executed when the service worker is successfully registered.
+   * @param registration - The ServiceWorkerRegistration object.
+   */
   onSuccess?: (registration: ServiceWorkerRegistration) => void;
+  /**
+   * Optional callback function to be executed when the service worker is updated.
+   * @param registration - The ServiceWorkerRegistration object.
+   */
   onUpdate?: (registration: ServiceWorkerRegistration) => void;
 };
 
+/** Stores the deferred install prompt event */
 let deferredPrompt: any = null;
 
+/**
+ * Shows a customized install banner for the PWA.
+ * Creates and displays a banner with install button when
+ * the PWA can be installed on the device.
+ */
 function showInstallBanner() {
   if (!deferredPrompt) return;
 
@@ -85,6 +108,11 @@ function showInstallBanner() {
   document.body.appendChild(banner);
 }
 
+/**
+ * Registers the service worker and sets up update handling.
+ * @param swUrl - URL of the service worker script
+ * @param config - Configuration object for callbacks
+ */
 async function registerValidSW(swUrl: string, config?: Config) {
   try {
     const registration = await navigator.serviceWorker.register(swUrl);
@@ -155,6 +183,11 @@ async function registerValidSW(swUrl: string, config?: Config) {
   }
 }
 
+/**
+ * Main registration function for the service worker.
+ * Only registers in production and if service workers are supported.
+ * @param config - Configuration object for callbacks
+ */
 export function register(config?: Config) {
   if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -172,13 +205,17 @@ export function register(config?: Config) {
   }
 }
 
+/**
+ * Unregisters all service workers for the app.
+ * Useful during development or when disabling PWA functionality.
+ */
 export function unregister() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.ready
-      .then(registration => {
+      .then((registration) => {
         registration.unregister();
       })
-      .catch(error => {
+      .catch((error) => {
         console.error(error.message);
       });
   }

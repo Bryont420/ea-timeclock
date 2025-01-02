@@ -1,3 +1,9 @@
+/**
+ * @fileoverview AdminTimeEntries page component that provides an interface for administrators
+ * to view, filter, edit, and export time entries for all employees. Includes functionality
+ * for filtering by date range and employee, editing entries, and generating PDF reports.
+ */
+
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     Container,
@@ -19,6 +25,12 @@ import { format, parseISO } from 'date-fns';
 import debounce from 'lodash/debounce';
 import { LoadingOverlay } from '../components/common/LoadingOverlay';
 
+/**
+ * Gets the start and end dates for the current work week.
+ * Work week is defined as Thursday through Wednesday.
+ * 
+ * @returns {Object} Object containing start and end dates in ISO format
+ */
 const getWorkWeekDates = () => {
     const today = new Date();
     
@@ -37,6 +49,13 @@ const getWorkWeekDates = () => {
     };
 };
 
+/**
+ * Sorts time entries based on clock-in status and employee name.
+ * Prioritizes currently clocked-in entries, then sorts by employee name.
+ * 
+ * @param entries - Array of time entries to sort
+ * @returns Sorted array of time entries
+ */
 const sortTimeEntries = (entries: TimeEntry[]): TimeEntry[] => {
     return [...entries].sort((a, b) => {
         // First separate clocked in vs not clocked in
@@ -70,6 +89,12 @@ const sortTimeEntries = (entries: TimeEntry[]): TimeEntry[] => {
 const MemoizedTimeEntryDialog = React.memo(TimeEntryDialog);
 const MemoizedTimeEntriesFilter = React.memo(TimeEntriesFilter);
 
+/**
+ * Validates filter data to ensure dates and employee selections are valid.
+ * 
+ * @param data - Filter data to validate
+ * @returns Error message if validation fails, null if valid
+ */
 const validateFilterData = (data: FilterData): string | null => {
     if (data.start_date && data.end_date) {
         const start = new Date(data.start_date);
@@ -87,11 +112,29 @@ const validateFilterData = (data: FilterData): string | null => {
     return null;
 };
 
+/**
+ * Validates a date string to ensure it's in the correct format.
+ * 
+ * @param dateString - Date string to validate
+ * @returns True if date is valid, false otherwise
+ */
 const isValidDate = (dateString: string): boolean => {
     const date = new Date(dateString);
     return !isNaN(date.getTime());
 };
 
+/**
+ * AdminTimeEntries page component that provides time entry management functionality.
+ * Features:
+ * - View and filter time entries by date range and employee
+ * - Edit individual time entries
+ * - Export filtered entries to PDF
+ * - Real-time updates with automatic refresh
+ * - Debounced filter updates for better performance
+ * - Error handling and loading states
+ * 
+ * @returns The rendered AdminTimeEntries page
+ */
 export const AdminTimeEntries: React.FC = () => {
     const workWeek = getWorkWeekDates();
     const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
