@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.exceptions import ObjectDoesNotExist
-from ...models import Employee, TimeEntry, AdminProfile, Note
+from ...models import Employee, TimeEntry, AdminProfile, Note, PasswordResetAttempt
 from ..serializers.employee_serializers import EmployeeSerializer
 from ..serializers.time_entry_serializers import TimeEntrySerializer
 from django.utils import timezone
@@ -60,6 +60,19 @@ def parse_cryptojs_format(encrypted_data):
 @permission_classes([])
 def login_view(request):
     try:
+        # Check for IP ban
+        ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR'))
+        attempt = PasswordResetAttempt.objects.create(
+            ip_address=ip,
+            attempt_type='login'
+        )
+        ban = PasswordResetAttempt.check_and_create_ban(ip)
+        if ban and ban.is_banned:
+            return Response({
+                'error': 'Too many login attempts',
+                'retry_after': str(ban.ban_end - timezone.now())
+            }, status=429)
+
         # Get encrypted data from request
         encrypted_data = request.data.get('encryptedData')
         iv = request.data.get('iv')

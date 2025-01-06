@@ -10,15 +10,45 @@ import json
 import hashlib
 from datetime import timedelta
 import asyncio
-from ...models import PasswordResetToken
+from ...models import PasswordResetToken, PasswordResetAttempt
 from ...views.email_helpers import send_shared_mail_async
 
 # Remove in-memory token storage
 # reset_tokens = {}
 
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        # Get the first IP in the chain (the original client IP)
+        return x_forwarded_for.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR')
+
 @api_view(['POST'])
 @csrf_exempt
 def request_password_reset(request):
+    # Check for rate limiting first
+    ip_address = get_client_ip(request)
+    attempt = PasswordResetAttempt.check_and_create_ban(ip_address)
+    
+    if attempt.is_banned:
+        ban_duration = attempt.ban_end - timezone.now()
+        if attempt.ban_level == 4:
+            message = "This IP address has been permanently banned from password resets due to too many attempts. Please contact an administrator."
+        else:
+            hours = ban_duration.total_seconds() / 3600
+            if hours >= 1:
+                duration = f"{int(hours)} hour{'s' if hours > 1 else ''}"
+            else:
+                minutes = ban_duration.total_seconds() / 60
+                duration = f"{int(minutes)} minute{'s' if minutes > 1 else ''}"
+            message = f"Too many password reset attempts from this IP. Please try again in {duration}."
+        
+        return JsonResponse({
+            'error': message,
+            'ban_level': attempt.ban_level,
+            'ban_end': attempt.ban_end.isoformat()
+        }, status=status.HTTP_429_TOO_MANY_REQUESTS)
+
     try:
         data = json.loads(request.body)
         user_id = data.get('user_id')
@@ -57,6 +87,29 @@ def request_password_reset(request):
 
 @api_view(['POST'])
 def reset_password(request, token):
+    # Check for rate limiting first
+    ip_address = get_client_ip(request)
+    attempt = PasswordResetAttempt.check_and_create_ban(ip_address)
+    
+    if attempt.is_banned:
+        ban_duration = attempt.ban_end - timezone.now()
+        if attempt.ban_level == 4:
+            message = "This IP address has been permanently banned from password resets due to too many attempts. Please contact an administrator."
+        else:
+            hours = ban_duration.total_seconds() / 3600
+            if hours >= 1:
+                duration = f"{int(hours)} hour{'s' if hours > 1 else ''}"
+            else:
+                minutes = ban_duration.total_seconds() / 60
+                duration = f"{int(minutes)} minute{'s' if minutes > 1 else ''}"
+            message = f"Too many password reset attempts from this IP. Please try again in {duration}."
+        
+        return JsonResponse({
+            'error': message,
+            'ban_level': attempt.ban_level,
+            'ban_end': attempt.ban_end.isoformat()
+        }, status=status.HTTP_429_TOO_MANY_REQUESTS)
+
     new_password = request.data.get('new_password')
 
     if not new_password:
