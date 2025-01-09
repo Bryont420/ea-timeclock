@@ -102,6 +102,11 @@ serviceWorkerRegistration.register({
 // Handle service worker messages
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('message', (event) => {
+    // Check if the message is from our origin
+    if (event.origin && event.origin !== window.location.origin) {
+      console.warn(`Rejected message from untrusted origin: ${event.origin}`);
+      return;
+    }
     if (event.data?.type === 'RELOAD_PAGE') {
       window.location.reload();
     }
