@@ -191,6 +191,7 @@ async function registerValidSW(swUrl: string, config?: Config) {
       installingWorker.onstatechange = () => {
         if (installingWorker.state === 'installed') {
           if (navigator.serviceWorker.controller) {
+            // Trigger update immediately
             installingWorker.postMessage({ type: 'SKIP_WAITING' });
           }
         }
@@ -201,8 +202,8 @@ async function registerValidSW(swUrl: string, config?: Config) {
 
     // Listen for the controllerchange event
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      // Reload the page when the new service worker takes control
-      window.location.reload();
+      // Don't reload immediately - wait for the VERSION_UPDATED message
+      // This ensures we get the version info before reloading
     });
 
     // Additional check for older versions

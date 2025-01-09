@@ -1,6 +1,6 @@
 {
   "name": "mobile-app",
-  "version": "4.20.6",
+  "version": "4.20.7",
   "private": true,
   "dependencies": {
     "@babel/core": "^7.23.6",

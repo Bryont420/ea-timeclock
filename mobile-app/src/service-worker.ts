@@ -21,6 +21,9 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
       try {
+        // Force activation of the new service worker
+        await self.skipWaiting();
+        
         // Pre-cache offline page
         const offlineCache = await caches.open('offline-fallback');
         await offlineCache.add('/index.html');
