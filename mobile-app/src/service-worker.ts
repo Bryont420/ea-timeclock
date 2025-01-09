@@ -21,20 +21,6 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
       try {
-        // Check current version in cache
-        const cache = await caches.open('sw-version');
-        const cachedVersion = await cache.match('version');
-        const currentVersion = cachedVersion ? await cachedVersion.text() : null;
-
-        if (currentVersion && currentVersion !== CACHE_VERSION) {
-          // Version changed - trigger update
-          console.log(`Service Worker updating from ${currentVersion} to ${CACHE_VERSION}`);
-          await self.skipWaiting();
-        } else if (!currentVersion) {
-          // First install - cache version
-          await cache.put('version', new Response(CACHE_VERSION));
-        }
-
         // Pre-cache offline page
         const offlineCache = await caches.open('offline-fallback');
         await offlineCache.add('/index.html');
@@ -50,34 +36,27 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
       try {
-        // Check if version changed
-        const cache = await caches.open('sw-version');
-        const cachedVersion = await cache.match('version');
-        const currentVersion = cachedVersion ? await cachedVersion.text() : null;
+        // Clean up old caches
+        const cacheKeys = await caches.keys();
+        await Promise.all(
+          cacheKeys.map(async (cacheKey) => {
+            if (cacheKey.includes(BUILD_VERSION)) {
+              return;
+            }
+            await caches.delete(cacheKey);
+          })
+        );
 
-        if (currentVersion !== CACHE_VERSION) {
-          // Version changed - update cache and claim clients
-          console.log(`Service Worker activating new version ${CACHE_VERSION}`);
-          
-          // Clean up old caches
-          const keys = await caches.keys();
-          await Promise.all(
-            keys
-              .filter(key => !key.startsWith('workbox-') && key !== 'sw-version')
-              .map(key => caches.delete(key))
-          );
-
-          // Update cached version
-          await cache.put('version', new Response(CACHE_VERSION));
-
-          // Only claim and reload if this isn't the first install
-          if (currentVersion) {
-            await self.clients.claim();
-            // Notify clients to reload
-            const clients = await self.clients.matchAll();
-            clients.forEach(client => client.postMessage({ type: 'RELOAD_PAGE' }));
-          }
-        }
+        // Take control and notify clients
+        await self.clients.claim();
+        const clients = await self.clients.matchAll();
+        clients.forEach(client => {
+          client.postMessage({ 
+            type: 'VERSION_UPDATED',
+            version: BUILD_VERSION,
+            timestamp: BUILD_TIMESTAMP
+          });
+        });
       } catch (error) {
         console.error('Service Worker activation error:', error);
       }

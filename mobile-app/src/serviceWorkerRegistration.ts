@@ -119,6 +119,60 @@ async function registerValidSW(swUrl: string, config?: Config) {
       config.onSuccess(registration);
     }
 
+    const showUpdateToast = () => {
+      const toast = document.createElement('div');
+      toast.className = 'update-toast';
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 16px;
+        right: 16px;
+        background: #4CAF50;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 4px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        z-index: 10000;
+        animation: slideIn 0.3s ease-out, fadeOut 0.3s ease-out 3s forwards;
+      `;
+      
+      // Add animation keyframes
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes slideIn {
+          from { transform: translateX(100%); }
+          to { transform: translateX(0); }
+        }
+        @keyframes fadeOut {
+          from { opacity: 1; }
+          to { opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
+
+      toast.textContent = '✓ App updated to latest version';
+      document.body.appendChild(toast);
+
+      // Remove toast after animation
+      setTimeout(() => {
+        document.body.removeChild(toast);
+        document.head.removeChild(style);
+      }, 3500);
+    };
+
+    // Check if we just updated
+    if (localStorage.getItem('APP_JUST_UPDATED')) {
+      localStorage.removeItem('APP_JUST_UPDATED');
+      setTimeout(showUpdateToast, 1000); // Show toast after a short delay to ensure page is ready
+    }
+
+    // Listen for version update messages
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data?.type === 'VERSION_UPDATED') {
+        localStorage.setItem('APP_JUST_UPDATED', 'true');
+        window.location.reload();
+      }
+    });
+
     const onUpdateFound = () => {
       const installingWorker = registration.installing;
       if (!installingWorker) {
@@ -126,8 +180,10 @@ async function registerValidSW(swUrl: string, config?: Config) {
       }
 
       installingWorker.onstatechange = () => {
-        if (installingWorker.state === 'installed' && config?.onUpdate) {
-          config.onUpdate(registration);
+        if (installingWorker.state === 'installed') {
+          if (navigator.serviceWorker.controller) {
+            installingWorker.postMessage({ type: 'SKIP_WAITING' });
+          }
         }
       };
     };
