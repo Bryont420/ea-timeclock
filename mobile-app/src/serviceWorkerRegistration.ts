@@ -165,13 +165,22 @@ async function registerValidSW(swUrl: string, config?: Config) {
       setTimeout(showUpdateToast, 1000); // Show toast after a short delay to ensure page is ready
     }
 
-    // Listen for version update messages
-    navigator.serviceWorker.addEventListener('message', (event) => {
+    // Handle service worker messages with origin check
+    const handleServiceWorkerMessage = (event: MessageEvent) => {
+      // Verify message origin
+      if (!event.origin || event.origin !== window.location.origin) {
+        console.warn(`Rejected message from untrusted origin: ${event.origin}`);
+        return;
+      }
+
       if (event.data?.type === 'VERSION_UPDATED') {
         localStorage.setItem('APP_JUST_UPDATED', 'true');
         window.location.reload();
       }
-    });
+    };
+
+    // Listen for version update messages with security check
+    navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
 
     const onUpdateFound = () => {
       const installingWorker = registration.installing;
