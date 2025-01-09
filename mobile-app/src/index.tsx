@@ -99,18 +99,21 @@ serviceWorkerRegistration.register({
   }
 });
 
-// Handle service worker messages
+// Handle service worker messages with origin check
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.addEventListener('message', (event) => {
-    // Check if the message is from our origin
-    if (event.origin && event.origin !== window.location.origin) {
+  const handleServiceWorkerMessage = (event: MessageEvent) => {
+    // Verify message origin
+    if (!event.origin || event.origin !== window.location.origin) {
       console.warn(`Rejected message from untrusted origin: ${event.origin}`);
       return;
     }
+    
     if (event.data?.type === 'RELOAD_PAGE') {
       window.location.reload();
     }
-  });
+  };
+
+  navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
 }
 
 const root = ReactDOM.createRoot(container);
