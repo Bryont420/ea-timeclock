@@ -1,0 +1,70 @@
+{
+  "short_name": "Time Clock",
+  "name": "EA Time Clock",
+  "description": "Employee time tracking application",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "maskable_192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    },
+    {
+      "src": "maskable_512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "images/screenshots/desktop.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Time Clock Desktop View"
+    },
+    {
+      "src": "images/screenshots/mobile.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Time Clock Mobile View"
+    }
+  ],
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#1976d2",
+  "background_color": "#ffffff",
+  "categories": ["business", "productivity"],
+  "orientation": "any",
+  "permissions": [
+    "publickey-credentials-get",
+    "screen-wake-lock"
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://ea-time-clock.duckdns.org:1832/manifest.json"
+    }
+  ],
+  "prefer_related_applications": false
+}

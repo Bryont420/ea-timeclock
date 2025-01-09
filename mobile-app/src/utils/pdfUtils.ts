@@ -1,23 +1,11 @@
-/**
- * @fileoverview PDF generation utilities for time entry reports.
- * Provides functions for creating formatted PDF reports of employee time entries
- * with support for pagination, text wrapping, and complex layouts.
- */
-
 import { format } from 'date-fns';
 
-/**
- * Dynamically imports jsPDF library to reduce initial bundle size.
- * @returns Promise resolving to jsPDF constructor
- */
+// Lazy load jsPDF to reduce initial bundle size
 const loadJsPDF = async () => {
   const { default: jsPDF } = await import(/* webpackChunkName: "jspdf" */ 'jspdf');
   return { jsPDF };
 };
 
-/**
- * Time entry record structure for PDF generation
- */
 interface TimeEntry {
     id: number;
     employee_name: string;
@@ -32,23 +20,10 @@ interface TimeEntry {
     }>;
 }
 
-/**
- * Options for text positioning and alignment in PDF
- */
 interface PDFTextOptions {
     align?: 'left' | 'center' | 'right';
 }
 
-/**
- * Wraps text to fit within a specified width.
- * Splits text into lines that fit within the maximum width,
- * preserving word boundaries.
- * 
- * @param doc - jsPDF document instance
- * @param text - Text to wrap
- * @param maxWidth - Maximum width in document units
- * @returns Array of wrapped text lines
- */
 const wrapText = (doc: any, text: string, maxWidth: number): string[] => {
     const textLines = text.split('\n');
     const resultLines: string[] = [];
@@ -73,19 +48,6 @@ const wrapText = (doc: any, text: string, maxWidth: number): string[] => {
     return resultLines;
 };
 
-/**
- * Draws a cell in the PDF document with text alignment and wrapping support.
- * 
- * @param doc - jsPDF document instance
- * @param text - Text content for the cell
- * @param x - X coordinate
- * @param y - Y coordinate
- * @param width - Cell width
- * @param height - Cell height
- * @param align - Text alignment ('left', 'center', 'right')
- * @param allowWrap - Whether to enable text wrapping
- * @returns Actual height used by the cell
- */
 const drawCell = (
     doc: any, 
     text: string, 
@@ -133,15 +95,6 @@ const drawCell = (
     }
 };
 
-/**
- * Draws a table header with column titles.
- * 
- * @param doc - jsPDF document instance
- * @param x - Starting X coordinate
- * @param y - Starting Y coordinate
- * @param columns - Array of column definitions with headers and widths
- * @returns Y coordinate after drawing the header
- */
 const drawHeader = (
     doc: any, 
     x: number, 
@@ -166,12 +119,6 @@ const drawHeader = (
     return y + rowHeight;
 };
 
-/**
- * Groups time entries by employee name.
- * 
- * @param entries - Array of time entries
- * @returns Map of employee names to their time entries
- */
 const groupEntriesByEmployee = (entries: TimeEntry[]) => {
     const grouped = new Map<string, TimeEntry[]>();
     for (let i = 0; i < entries.length; i++) {
@@ -185,12 +132,6 @@ const groupEntriesByEmployee = (entries: TimeEntry[]) => {
     return grouped;
 };
 
-/**
- * Sorts time entries by clock-in date.
- * 
- * @param entries - Array of time entries
- * @returns Sorted array of time entries
- */
 const sortEntriesByDate = (entries: TimeEntry[]): TimeEntry[] => {
     return [...entries].sort((a, b) => {
         const dateA = new Date(a.clock_in_time);
@@ -199,12 +140,6 @@ const sortEntriesByDate = (entries: TimeEntry[]): TimeEntry[] => {
     });
 };
 
-/**
- * Converts hours worked string (e.g., "8H 30M") to total minutes.
- * 
- * @param hoursWorkedStr - Hours worked in string format
- * @returns Total minutes worked
- */
 const convertHoursWorkedToMinutes = (hoursWorkedStr: string): number => {
     if (!hoursWorkedStr) return 0;
     const parts = hoursWorkedStr.split(' ');
@@ -222,29 +157,12 @@ const convertHoursWorkedToMinutes = (hoursWorkedStr: string): number => {
     return hours * 60 + minutes;
 };
 
-/**
- * Converts total minutes to hours and minutes string format.
- * 
- * @param totalMinutes - Total number of minutes
- * @returns Formatted string (e.g., "8H 30M")
- */
 const convertMinutesToHoursAndMinutes = (totalMinutes: number): string => {
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
     return `${hours}H ${minutes}M`;
 };
 
-/**
- * Generates a PDF report of time entries grouped by employee.
- * Features:
- * - Automatic pagination
- * - Text wrapping for notes
- * - Subtotals per employee
- * - Formatted dates and times
- * - Header and footer on each page
- * 
- * @param timeEntries - Array of time entries to include in report
- */
 export const generateTimeEntriesPDF = async (timeEntries: TimeEntry[]): Promise<void> => {
     const { jsPDF } = await loadJsPDF();
     const doc = new jsPDF({

@@ -1,28 +1,12 @@
-/**
- * @fileoverview CRACO (Create React App Configuration Override) configuration
- * Customizes the Create React App webpack configuration without ejecting.
- * Implements:
- * - Code splitting and chunking strategies
- * - Bundle optimization and minification
- * - Development and production environment configurations
- * - Module aliasing and path resolution
- */
-
 const path = require('path');
+const webpack = require('webpack');
+const packageJson = require('./package.json');
 
-/**
- * Conditionally import bundle analyzer
- * Only loaded when ANALYZE environment variable is true
- */
+// Only import BundleAnalyzerPlugin when needed
 let BundleAnalyzerPlugin;
-if (process.env.ANALYZE === 'true') {
+if (process.env.ANALYZE) {
   BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 }
-
-/**
- * Import TerserPlugin for production minification
- */
-const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
   webpack: {
@@ -34,12 +18,6 @@ module.exports = {
         webpackConfig.optimization.usedExports = true;
         webpackConfig.optimization.providedExports = true;
 
-        /**
-         * Configure code splitting and chunking
-         * - Splits bundles for optimal loading
-         * - Groups common dependencies
-         * - Implements size limits
-         */
         webpackConfig.optimization.splitChunks = {
           chunks: 'all',
           minSize: 20000,
@@ -49,10 +27,6 @@ module.exports = {
           maxInitialRequests: 6,
           automaticNameDelimiter: '-',
           cacheGroups: {
-            /**
-             * Material-UI core components bundle
-             * Includes frequently used base components
-             */
             muiCore: {
               test: /[\\/]node_modules[\\/]@mui[\\/]material[\\/](esm|umd|system)[\\/](Box|Typography|Container|CssBaseline|CircularProgress)[\\/]/,
               name: 'mui-core',
@@ -60,10 +34,6 @@ module.exports = {
               priority: 60,
               enforce: true,
             },
-            /**
-             * Material-UI icons bundle
-             * Loaded asynchronously to reduce initial bundle size
-             */
             muiIcons: {
               test: /[\\/]node_modules[\\/]@mui[\\/]icons-material[\\/]/,
               name: 'mui-icons',
@@ -71,10 +41,6 @@ module.exports = {
               priority: 55,
               enforce: true,
             },
-            /**
-             * Material-UI form components bundle
-             * Groups form-related components for better caching
-             */
             muiForm: {
               test: /[\\/]node_modules[\\/]@mui[\\/]material[\\/](esm|umd|system)[\\/](TextField|Select|MenuItem|FormControl|InputLabel|FormControlLabel|Checkbox)[\\/]/,
               name: 'mui-form',
@@ -83,10 +49,6 @@ module.exports = {
               enforce: true,
               reuseExistingChunk: true,
             },
-            /**
-             * Material-UI inputs bundle
-             * Groups input-related components for better caching
-             */
             muiInputs: {
               test: /[\\/]node_modules[\\/]@mui[\\/]material[\\/](esm|umd|system)[\\/](Select|FilledInput|OutlinedInput|Input|InputBase)[\\/]/,
               name: 'mui-inputs',
@@ -95,10 +57,6 @@ module.exports = {
               enforce: true,
               reuseExistingChunk: true,
             },
-            /**
-             * Material-UI layout components bundle
-             * Groups layout-related components for better caching
-             */
             muiLayout: {
               test: /[\\/]node_modules[\\/]@mui[\\/]material[\\/](esm|umd|system)[\\/](Card|Grid|Paper|AppBar|Toolbar|Divider)[\\/]/,
               name: 'mui-layout',
@@ -106,10 +64,6 @@ module.exports = {
               priority: 45,
               enforce: true,
             },
-            /**
-             * Material-UI table components bundle
-             * Groups table-related components for better caching
-             */
             muiTable: {
               test: /[\\/]node_modules[\\/]@mui[\\/]material[\\/](esm|umd|system)[\\/](Table|TableBody|TableCell|TableContainer|TableHead|TableRow|TableFooter)[\\/]/,
               name: 'mui-table',
@@ -117,10 +71,6 @@ module.exports = {
               priority: 40,
               enforce: true,
             },
-            /**
-             * Material-UI feedback components bundle
-             * Groups feedback-related components for better caching
-             */
             muiFeedback: {
               test: /[\\/]node_modules[\\/]@mui[\\/]material[\\/](esm|umd|system)[\\/](Alert|Snackbar|Dialog|DialogTitle|DialogContent|DialogActions|Popover|Modal)[\\/]/,
               name: 'mui-feedback',
@@ -128,10 +78,6 @@ module.exports = {
               priority: 35,
               enforce: true,
             },
-            /**
-             * Material-UI navigation components bundle
-             * Groups navigation-related components for better caching
-             */
             muiNav: {
               test: /[\\/]node_modules[\\/]@mui[\\/]material[\\/](esm|umd|system)[\\/](BottomNavigation|BottomNavigationAction|Button|IconButton)[\\/]/,
               name: 'mui-nav',
@@ -139,10 +85,6 @@ module.exports = {
               priority: 30,
               enforce: true,
             },
-            /**
-             * Date-fns library bundle
-             * Groups date-related functions for better caching
-             */
             dateFns: {
               test: /[\\/]node_modules[\\/]date-fns[\\/]/,
               name: 'date-fns',
@@ -151,10 +93,6 @@ module.exports = {
               enforce: true,
               minSize: 10000,
             },
-            /**
-             * Material-UI date pickers bundle
-             * Groups date picker-related components for better caching
-             */
             datePickers: {
               test: /[\\/]node_modules[\\/]@mui[\\/]x-date-pickers[\\/]/,
               name: 'mui-date-pickers',
@@ -162,10 +100,6 @@ module.exports = {
               priority: 25,
               enforce: true,
             },
-            /**
-             * Main vendor libraries bundle
-             * Groups main vendor libraries for better caching
-             */
             mainVendors: {
               test: /[\\/]node_modules[\\/](react|react-dom|react-router|@remix-run)[\\/]/,
               name: 'main-vendors',
@@ -173,10 +107,6 @@ module.exports = {
               priority: 20,
               enforce: true,
             },
-            /**
-             * Features bundle
-             * Groups feature-related components for better caching
-             */
             features: {
               test: /[\\/]src[\\/](components|features)[\\/]/,
               name(module) {
@@ -195,10 +125,6 @@ module.exports = {
               minSize: 10000,
               reuseExistingChunk: true,
             },
-            /**
-             * Default bundle
-             * Catches any remaining modules
-             */
             default: {
               minChunks: 2,
               priority: -20,
@@ -207,14 +133,11 @@ module.exports = {
           },
         };
 
-        /**
-         * Configure Terser minification options
-         * Optimizes for production while maintaining compatibility
-         */
+        // Add terser configuration for better minification
         webpackConfig.optimization.minimize = true;
         webpackConfig.optimization.minimizer = webpackConfig.optimization.minimizer || [];
         webpackConfig.optimization.minimizer.push(
-          new TerserPlugin({
+          new (require('terser-webpack-plugin'))({
             terserOptions: {
               parse: {
                 ecma: 8,
@@ -357,6 +280,24 @@ module.exports = {
             return loader;
           });
         }
+      }
+
+      // Add version and timestamp for service worker
+      webpackConfig.plugins.push(
+        new webpack.DefinePlugin({
+          'BUILD_VERSION': JSON.stringify(packageJson.version),
+          'BUILD_TIMESTAMP': JSON.stringify(new Date().toISOString()),
+        })
+      );
+
+      // Add bundle analyzer if enabled
+      if (process.env.ANALYZE) {
+        webpackConfig.plugins.push(
+          new BundleAnalyzerPlugin({
+            analyzerMode: 'static',
+            reportFilename: 'bundle-report.html',
+          })
+        );
       }
 
       return webpackConfig;

@@ -1,17 +1,8 @@
-/**
- * @fileoverview Employee service that handles employee-related operations including
- * time entries, clock in/out, and employee information. Implements caching for
- * employee info to reduce API calls.
- */
-
 import { axiosInstance } from '../utils/axios';
 import { API_ENDPOINTS } from '../config';
 import { handleAPIError } from '../utils/apiErrors';
 import { getUserData } from './auth';
 
-/**
- * Interface for employee information
- */
 export interface EmployeeInfo {
     id: string;
     first_name: string;
@@ -33,9 +24,6 @@ export interface EmployeeInfo {
     sick_hours_remaining_display: string;
 }
 
-/**
- * Interface for time entry notes
- */
 export interface Note {
     note_text: string;
     created_at: string;
@@ -44,9 +32,6 @@ export interface Note {
     };
 }
 
-/**
- * Interface for time entry data
- */
 export interface TimeEntry {
     id: number;
     clock_in_time: string;
@@ -58,9 +43,6 @@ export interface TimeEntry {
     is_sick: boolean;
 }
 
-/**
- * Interface for time entries API response
- */
 export interface TimeEntriesResponse {
     entries: TimeEntry[];
     total_hours: string;
@@ -69,20 +51,10 @@ export interface TimeEntriesResponse {
     clock_in_time: string | null;
 }
 
-/** Cache for employee info to reduce API calls */
 let cachedEmployeeInfo: EmployeeInfo | null = null;
-/** Timestamp of last cache update */
 let lastFetchTime = 0;
-/** Cache duration in milliseconds */
 const CACHE_DURATION = 3600000; // 1 hour cache
 
-/**
- * Fetches employee information with caching.
- * Returns cached data if available and not expired.
- * 
- * @returns Promise that resolves to employee information
- * @throws APIError if request fails
- */
 export const getEmployeeInfo = async (): Promise<EmployeeInfo> => {
     try {
         const now = Date.now();
@@ -108,10 +80,6 @@ export const getEmployeeInfo = async (): Promise<EmployeeInfo> => {
     }
 };
 
-/**
- * Clears the employee information cache.
- * Should be called when employee data might have changed.
- */
 export const clearEmployeeInfoCache = () => {
     cachedEmployeeInfo = null;
     lastFetchTime = 0;
@@ -120,13 +88,6 @@ export const clearEmployeeInfoCache = () => {
 // Alias for consistency with other code
 export const fetchEmployeeInfo = getEmployeeInfo;
 
-/**
- * Fetches time entries for the employee.
- * 
- * @param date - Optional date to filter entries
- * @returns Promise that resolves to time entries response
- * @throws APIError if request fails
- */
 export const getTimeEntries = async (date?: string): Promise<TimeEntriesResponse> => {
     try {
         const url = date
@@ -140,11 +101,6 @@ export const getTimeEntries = async (date?: string): Promise<TimeEntriesResponse
     }
 };
 
-/**
- * Records a clock in event for the employee.
- * 
- * @throws APIError if request fails
- */
 export const clockIn = async (): Promise<void> => {
     try {
         await axiosInstance.post(API_ENDPOINTS.EMPLOYEE.CLOCK);
@@ -153,11 +109,6 @@ export const clockIn = async (): Promise<void> => {
     }
 };
 
-/**
- * Records a clock out event for the employee.
- * 
- * @throws APIError if request fails
- */
 export const clockOut = async (): Promise<void> => {
     try {
         await axiosInstance.post(`${API_ENDPOINTS.EMPLOYEE.CLOCK}out/`);
@@ -166,12 +117,6 @@ export const clockOut = async (): Promise<void> => {
     }
 };
 
-/**
- * Updates the employee's background image preference.
- * 
- * @param backgroundImage - Name of the background image file
- * @throws APIError if request fails
- */
 export const updateBackgroundImage = async (backgroundImage: string): Promise<void> => {
     try {
         await axiosInstance.post(API_ENDPOINTS.EMPLOYEE.BACKGROUND_IMAGE, { 

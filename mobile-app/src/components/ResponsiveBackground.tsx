@@ -1,34 +1,11 @@
-/**
- * @fileoverview Responsive background component that provides optimized background
- * images for different screen sizes and formats (webp/jpg). Handles proper image
- * loading and sizing for optimal performance and visual quality.
- */
-
 import React, { memo } from 'react';
 import { useBackground } from '../contexts/BackgroundContext';
 import { Box } from '@mui/material';
 
-/**
- * Props interface for the ResponsiveBackground component.
- */
 interface ResponsiveBackgroundProps {
-    /** Child components to be rendered on top of the background */
     children: React.ReactNode;
 }
 
-/**
- * ResponsiveBackground component that provides optimized background images.
- * Features:
- * - Responsive image loading based on screen size
- * - WebP format with JPEG fallback
- * - Proper image sizing and positioning
- * - Optimized performance with picture element
- * - Support for small, medium, and large screens
- * 
- * @param props - Component props
- * @param props.children - Child components to render over the background
- * @returns The responsive background component
- */
 export const ResponsiveBackground: React.FC<ResponsiveBackgroundProps> = memo(({ children }) => {
     const { backgroundImage } = useBackground();
 

@@ -1,66 +1,31 @@
 {
-  // TypeScript configuration for React application
-  // Configures compilation options and type checking
   "compilerOptions": {
-    // Target ECMAScript version
     "target": "es5",
-    
-    // Include type definitions for various environments
     "lib": [
       "dom",
       "dom.iterable",
       "esnext",
       "webworker"
     ],
-    
-    // Allow JavaScript files to be compiled
     "allowJs": true,
-    
-    // Skip type checking of declaration files
     "skipLibCheck": true,
-    
-    // Enable interop between CommonJS and ES Modules
     "esModuleInterop": true,
-    
-    // Allow default imports from modules with no default export
     "allowSyntheticDefaultImports": true,
-    
-    // Enable all strict type checking options
     "strict": true,
-    
-    // Ensure consistent casing in file names
     "forceConsistentCasingInFileNames": true,
-    
-    // Report errors for fallthrough cases in switch statements
     "noFallthroughCasesInSwitch": true,
-    
-    // Use ES Module syntax
     "module": "esnext",
-    
-    // Use Node.js style module resolution
     "moduleResolution": "node",
-    
-    // Allow importing JSON files
     "resolveJsonModule": true,
-    
-    // Ensure each file can be safely transpiled
     "isolatedModules": true,
-    
-    // Do not emit compiler output files
     "noEmit": true,
-    
-    // Support JSX in .tsx files
     "jsx": "react-jsx",
-    
-    // Include type definitions
     "types": [
       "node",
       "jest",
       "webpack-env"
     ]
   },
-  
-  // Files to include in compilation
   "include": [
     "src"
   ]

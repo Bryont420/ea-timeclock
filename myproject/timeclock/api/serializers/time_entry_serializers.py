@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from timeclock.models import TimeEntry, Note
+from timeclock.models import TimeEntry, Note, Employee
 from timeclock.api.utils import format_hours
 
 class NoteSerializer(serializers.ModelSerializer):
@@ -9,10 +9,20 @@ class NoteSerializer(serializers.ModelSerializer):
         model = Note
         fields = ['note_text', 'created_at', 'created_by']
 
+    def get_creator_name(self, user):
+        if not user:
+            return "Unknown"
+        # Check if the username is numeric, indicating that it's an employee ID
+        if user.username.isdigit():
+            # Find the employee associated with this user and return their first name
+            employee = Employee.objects.filter(user=user).first()
+            if employee:
+                return employee.first_name
+        # If not an employee or employee not found, return the username
+        return user.username
+
     def get_created_by(self, obj):
-        if obj.created_by:
-            return {'username': obj.created_by.username}
-        return {'username': 'System'}
+        return {'username': self.get_creator_name(obj.created_by)}
 
 class TimeEntrySerializer(serializers.ModelSerializer):
     notes = NoteSerializer(many=True, read_only=True)

@@ -147,11 +147,23 @@ class AdminTimeEntrySerializer(serializers.ModelSerializer):
     def get_employee_name(self, obj):
         return f"{obj.employee.first_name} {obj.employee.last_name}"
 
+    def get_creator_name(self, user):
+        if not user:
+            return "Unknown"
+        # Check if the username is numeric, indicating that it's an employee ID
+        if user.username.isdigit():
+            # Find the employee associated with this user and return their first name
+            employee = Employee.objects.filter(user=user).first()
+            if employee:
+                return employee.first_name
+        # If not an employee or employee not found, return the username
+        return user.username
+
     def get_notes_display(self, obj):
         return [{
             'id': note.id,
             'note_text': note.note_text,
-            'created_by': note.created_by.username if note.created_by else 'Unknown',
+            'created_by': self.get_creator_name(note.created_by),
             'created_at': timezone.localtime(note.created_at).strftime('%Y-%m-%d %H:%M')
         } for note in obj.notes.all()]
 
@@ -159,7 +171,7 @@ class AdminTimeEntrySerializer(serializers.ModelSerializer):
         return [{
             'id': note.id,
             'note_text': note.note_text,
-            'created_by': note.created_by.username if note.created_by else 'Unknown',
+            'created_by': self.get_creator_name(note.created_by),
             'created_at': timezone.localtime(note.created_at).strftime('%Y-%m-%d %H:%M')
         } for note in obj.notes.all()]
 

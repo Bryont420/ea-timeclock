@@ -1,9 +1,3 @@
-/**
- * @fileoverview Authentication service that handles user authentication, token management,
- * and biometric authentication. Provides comprehensive login/logout functionality with
- * rate limiting and token refresh mechanisms.
- */
-
 import { axiosInstance } from '../utils/axios';
 import { API_ENDPOINTS } from '../config';
 import { APIError } from '../utils/apiErrors';
@@ -17,9 +11,6 @@ declare global {
     }
 }
 
-/**
- * Interface for login response data from the API
- */
 export interface LoginResponse {
     access: string;
     refresh: string;
@@ -30,9 +21,6 @@ export interface LoginResponse {
     email: string;
 }
 
-/**
- * Interface for user data stored in session
- */
 export interface UserData {
     id: number;
     username: string;
@@ -43,10 +31,6 @@ export interface UserData {
     employee?: boolean;  // Optional employee flag for admin users
 }
 
-/**
- * Clears all user-related data from storage.
- * Preserves biometric data on mobile devices.
- */
 export const clearAllUserData = () => {
     try {
         // Save biometric data and lastUsername if on mobile
@@ -105,11 +89,7 @@ export const clearAllUserData = () => {
     }
 };
 
-/**
- * Validates a JWT token format and expiration.
- * @param token - JWT token to validate
- * @returns True if token is valid and not expired
- */
+// Token validation helper
 const isTokenValid = (token: string): boolean => {
     try {
         const payload = JSON.parse(atob(token.split('.')[1]));
@@ -120,12 +100,7 @@ const isTokenValid = (token: string): boolean => {
     }
 };
 
-/**
- * Converts an ArrayBuffer to a Base64 string.
- * Used for biometric credential processing.
- * @param buffer - ArrayBuffer to convert
- * @returns Base64 encoded string
- */
+// Convert ArrayBuffer to Base64 string
 const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
     const uint8Array = new Uint8Array(buffer);
     let binaryString = '';
@@ -135,11 +110,6 @@ const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
     return btoa(binaryString);
 };
 
-/**
- * Verifies biometric credentials for a user.
- * @param username - Username to verify biometrics for
- * @returns Object containing verification status and credential
- */
 export const verifyBiometric = async (username: string): Promise<{ verified: boolean, credential: any }> => {
     try {
         // Get stored credential ID for this user
@@ -210,29 +180,11 @@ export const verifyBiometric = async (username: string): Promise<{ verified: boo
     }
 };
 
-// Rate limiting configuration
-/** Maximum number of login attempts before lockout */
-const MAX_LOGIN_ATTEMPTS = 5;
-/** Duration of lockout in milliseconds */
-const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
-/** Map to track login attempts by username */
+// Rate limiting for login attempts
 const loginAttempts = new Map<string, { count: number; timestamp: number }>();
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
 
-/**
- * Authenticates a user with username/password or biometric credentials.
- * Features:
- * - Rate limiting with lockout
- * - Biometric authentication support
- * - Automatic token refresh setup
- * - Error handling with specific messages
- * 
- * @param username - User's username
- * @param password - User's password (optional if using biometrics)
- * @param isBiometric - Whether to use biometric authentication
- * @param biometricCredential - Biometric credential data
- * @returns Login response with tokens and user data
- * @throws APIError if authentication fails
- */
 export const login = async (
     username: string, 
     password?: string, 
@@ -356,24 +308,14 @@ export const login = async (
     }
 };
 
-/**
- * Logs out the current user.
- * Clears all tokens and user data.
- */
 export const logout = (): Promise<void> => {
     return new Promise<void>(async (resolve) => {
         try {
             const refreshToken = getRefreshToken();
-            const accessToken = getToken();
-            if (refreshToken && accessToken) {
+            if (refreshToken) {
                 await axiosInstance.post(
                     API_ENDPOINTS.AUTH.LOGOUT,
-                    { refresh_token: refreshToken },
-                    {
-                        headers: {
-                            'Authorization': `Bearer ${accessToken}`
-                        }
-                    }
+                    { refresh_token: refreshToken }
                 );
             }
         } catch (error) {
@@ -386,11 +328,6 @@ export const logout = (): Promise<void> => {
     });
 };
 
-/**
- * Refreshes the authentication token using the refresh token.
- * @returns New access token
- * @throws APIError if refresh fails
- */
 export const refreshAuthToken = async (): Promise<string> => {
     try {
         const refreshToken = getRefreshToken();
@@ -446,58 +383,30 @@ export const refreshAuthToken = async (): Promise<string> => {
     }
 };
 
-/**
- * Gets the current access token from storage.
- * @returns Access token or null if not found
- */
 export const getToken = (): string | null => {
     return sessionStorage.getItem('token');
 };
 
-/**
- * Gets the current refresh token from storage.
- * @returns Refresh token or null if not found
- */
 export const getRefreshToken = (): string | null => {
     return sessionStorage.getItem('refresh_token');
 };
 
-/**
- * Gets the current user data from storage.
- * @returns User data or null if not found
- */
 export const getUserData = (): UserData | null => {
     const userData = sessionStorage.getItem('user');
     return userData ? JSON.parse(userData) : null;
 };
 
-/**
- * Checks if user is currently authenticated.
- * @returns True if user has valid token
- */
 export const isAuthenticated = (): boolean => {
     const token = getToken();
     const userData = getUserData();
     return !!(token && userData);
 };
 
-/**
- * Gets the authorization header for API requests.
- * @returns Authorization header object or undefined if no token
- */
 export const getAuthHeader = (): { Authorization: string } | undefined => {
     const token = getToken();
     return token ? { Authorization: `Bearer ${token}` } : undefined;
 };
 
-/**
- * Changes the user's password.
- * Handles re-authentication with new credentials.
- * 
- * @param newPassword - New password to set
- * @returns Login response with new tokens
- * @throws APIError if password change fails
- */
 export const changePassword = async (newPassword: string): Promise<LoginResponse> => {
     try {
         const token = getToken();

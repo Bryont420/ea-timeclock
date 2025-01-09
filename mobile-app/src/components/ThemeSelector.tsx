@@ -1,33 +1,11 @@
-/**
- * @fileoverview Theme selector component that allows users to switch between
- * different color themes in the application. Provides a visual preview of each
- * theme's primary and background colors.
- */
-
 import React from 'react';
 import { Select, MenuItem, FormControl, SelectChangeEvent, Box, Typography } from '@mui/material';
 import { useTheme } from '../contexts/ThemeContext';
 import PaletteIcon from '@mui/icons-material/Palette';
 
-/**
- * ThemeSelector component that provides a dropdown menu for theme selection.
- * Features:
- * - Compact palette icon button that expands to show theme options
- * - Visual preview of each theme's colors
- * - Live theme switching
- * - Hover effects showing theme colors
- * - Support for multiple theme options
- * 
- * @returns The theme selector component
- */
 const ThemeSelector: React.FC = () => {
   const { currentTheme, setTheme, availableThemes } = useTheme();
 
-  /**
-   * Handles theme selection change event.
-   * 
-   * @param event - The select change event
-   */
   const handleChange = (event: SelectChangeEvent<string>) => {
     setTheme(event.target.value);
   };

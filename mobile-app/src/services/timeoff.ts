@@ -1,16 +1,7 @@
-/**
- * @fileoverview Time off service that handles all time off request operations.
- * Provides functionality for creating, reviewing, updating, and deleting time
- * off requests with validation and error handling.
- */
-
 import { axiosInstance } from '../utils/axios';
 import { API_ENDPOINTS } from '../config';
 import { handleAPIError } from '../utils/apiErrors';
 
-/**
- * Interface for time off request data
- */
 export interface TimeOffRequest {
     id: string;
     employee: string;
@@ -30,9 +21,6 @@ export interface TimeOffRequest {
     end_time?: string;
 }
 
-/**
- * Interface for creating a new time off request
- */
 export interface CreateTimeOffRequest {
     start_date: string;
     end_date: string;
@@ -44,9 +32,6 @@ export interface CreateTimeOffRequest {
     end_time?: string;
 }
 
-/**
- * Interface for time off request error response
- */
 export interface TimeOffError extends Error {
     response?: {
         data: {
@@ -63,13 +48,6 @@ export interface TimeOffError extends Error {
     };
 }
 
-/**
- * Creates a new time off request.
- * 
- * @param request - Time off request data
- * @returns Promise that resolves to created request
- * @throws TimeOffError if request fails
- */
 export const createTimeOffRequest = async (request: CreateTimeOffRequest): Promise<TimeOffRequest> => {
     try {
         const response = await axiosInstance.post<TimeOffRequest>(
@@ -82,13 +60,6 @@ export const createTimeOffRequest = async (request: CreateTimeOffRequest): Promi
     }
 };
 
-/**
- * Fetches all time off requests for the current user.
- * For admin users, returns all requests.
- * 
- * @returns Promise that resolves to array of time off requests
- * @throws APIError if request fails
- */
 export const getTimeOffRequests = async (): Promise<TimeOffRequest[]> => {
     try {
         const response = await axiosInstance.get<TimeOffRequest[]>(API_ENDPOINTS.TIME_OFF.LIST);
@@ -98,13 +69,6 @@ export const getTimeOffRequests = async (): Promise<TimeOffRequest[]> => {
     }
 };
 
-/**
- * Fetches a specific time off request by ID.
- * 
- * @param id - Request ID to fetch
- * @returns Promise that resolves to time off request
- * @throws APIError if request fails
- */
 export const getTimeOffRequest = async (id: string): Promise<TimeOffRequest> => {
     try {
         const response = await axiosInstance.get<TimeOffRequest>(API_ENDPOINTS.TIME_OFF.DETAIL(id));
@@ -114,16 +78,6 @@ export const getTimeOffRequest = async (id: string): Promise<TimeOffRequest> => 
     }
 };
 
-/**
- * Reviews (approves/denies) a time off request.
- * Only available to admin users.
- * 
- * @param id - Request ID to review
- * @param action - Review action (approve/deny)
- * @param review_notes - Optional notes for the review
- * @returns Promise that resolves to updated request
- * @throws APIError if request fails
- */
 export const reviewTimeOffRequest = async (
     id: string,
     action: 'approve' | 'deny',
@@ -140,15 +94,6 @@ export const reviewTimeOffRequest = async (
     }
 };
 
-/**
- * Updates an existing time off request.
- * Only available for pending requests.
- * 
- * @param id - Request ID to update
- * @param request - Updated request data
- * @returns Promise that resolves to updated request
- * @throws APIError if request fails
- */
 export const updateTimeOffRequest = async (
     id: string,
     request: CreateTimeOffRequest
@@ -164,13 +109,6 @@ export const updateTimeOffRequest = async (
     }
 };
 
-/**
- * Deletes a time off request.
- * Only available for pending requests.
- * 
- * @param id - Request ID to delete
- * @throws APIError if request fails
- */
 export const deleteTimeOffRequest = async (id: string): Promise<void> => {
     try {
         await axiosInstance.delete(API_ENDPOINTS.TIME_OFF.DETAIL(id));

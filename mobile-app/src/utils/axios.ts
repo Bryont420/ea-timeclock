@@ -1,21 +1,8 @@
-/**
- * @fileoverview Axios configuration and interceptors for handling HTTP requests.
- * Provides a configured axios instance with authentication, caching, and retry logic.
- * Includes token refresh handling and request/response interceptors.
- */
-
 import axios, { AxiosHeaders } from 'axios';
 import { getToken, getRefreshToken } from '../services/auth';
 import { API_BASE_URL } from '../config';
 import { APIError } from './apiErrors';
 
-/**
- * Creates a Promise that resolves after a specified delay.
- * Used for implementing retry delays and throttling.
- * 
- * @param ms - Delay in milliseconds (bounded between 100ms and 10s)
- * @returns Promise that resolves after the delay
- */
 // Create a safe delay function with bounds
 const safeDelay = (ms: number): Promise<void> => {
     // Ensure the delay is a number and within reasonable bounds (100ms to 10s)
@@ -23,14 +10,6 @@ const safeDelay = (ms: number): Promise<void> => {
     return new Promise(resolve => setTimeout(resolve, boundedDelay));
 };
 
-/**
- * Configured axios instance with default settings:
- * - Base URL from configuration
- * - Security headers
- * - CSRF protection
- * - 30-second timeout
- * - JWT token authentication
- */
 // Create an axios instance with default config
 export const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
@@ -46,11 +25,6 @@ export const axiosInstance = axios.create({
     xsrfHeaderName: 'X-XSRF-TOKEN',
 });
 
-/**
- * Request interceptor that adds authorization and cache control headers.
- * Automatically adds JWT token to requests if available.
- * Adds cache control headers for dynamic API endpoints.
- */
 // Add authorization header to all requests
 axiosInstance.interceptors.request.use(
     (config) => {
@@ -84,41 +58,19 @@ axiosInstance.interceptors.request.use(
     }
 );
 
-/**
- * Token refresh state management.
- * Handles parallel requests during token refresh to prevent multiple refresh attempts.
- */
 // Add response interceptor to handle token refresh
 let isRefreshing = false;
 let refreshSubscribers: ((token: string) => void)[] = [];
 
-/**
- * Subscribes a callback to be notified when a token is refreshed.
- * Used to handle parallel requests during token refresh.
- * 
- * @param cb - Callback function to be called with the new token
- */
 const subscribeTokenRefresh = (cb: (token: string) => void) => {
     refreshSubscribers.push(cb);
 };
 
-/**
- * Notifies all subscribers about a refreshed token and clears the subscriber list.
- * 
- * @param token - New token to pass to subscribers
- */
 const onTokenRefreshed = (token: string) => {
     refreshSubscribers.map(cb => cb(token));
     refreshSubscribers = [];
 };
 
-/**
- * Response interceptor that handles:
- * - Token refresh for 401 errors
- * - Request retry after token refresh
- * - Error conversion to APIError instances
- * - Service unavailable (503) retry with delay
- */
 axiosInstance.interceptors.response.use(
     (response) => response,
     async (error) => {

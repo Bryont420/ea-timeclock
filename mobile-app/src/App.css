@@ -1,27 +1,37 @@
-/**
- * Main application styles
- * Contains core layout and animation styles for the application
- */
-
-/* Main container styles */
 .App {
   text-align: center;
+  /* Establish a new stacking context */
+  isolation: isolate;
+  /* Optimize paint and layout */
+  contain: content;
+  /* Improve mobile performance */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
-/* Logo styles with animation support */
 .App-logo {
   height: 40vmin;
   pointer-events: none;
+  /* Enhanced GPU acceleration */
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  /* Prevent paint during animation */
+  contain: paint layout;
+  /* Improved animation performance */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Disable animation for users who prefer reduced motion */
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
+    transform-origin: center center;
+    /* Force hardware acceleration during animation */
+    perspective: 1000px;
+    transform-style: preserve-3d;
   }
 }
 
-/* Header section styles */
 .App-header {
   background-color: #282c34;
   min-height: 100vh;
@@ -31,19 +41,41 @@
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
+  /* Optimize layout calculations */
+  contain: content;
+  /* Create stacking context */
+  z-index: 1;
+  position: relative;
+  /* Improve paint performance */
+  will-change: transform;
+  /* Prevent layout shifts */
+  content-visibility: auto;
+  contain-intrinsic-size: 0 500px;
 }
 
-/* Link styles */
 .App-link {
   color: #61dafb;
+  /* Smooth color transitions */
+  transition: color 0.2s ease-out;
 }
 
-/* Logo rotation animation */
+h1, h2, h3, h4, h5, h6, .MuiTypography-root {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Prevent layout shifts during font load */
+  font-display: swap;
+  /* Optimize paint */
+  contain: layout style;
+  /* Force GPU acceleration for text */
+  transform: translateZ(0);
+}
+
 @keyframes App-logo-spin {
   from {
-    transform: rotate(0deg);
+    transform: rotate3d(0, 0, 1, 0deg);
   }
   to {
-    transform: rotate(360deg);
+    transform: rotate3d(0, 0, 1, 360deg);
   }
 }

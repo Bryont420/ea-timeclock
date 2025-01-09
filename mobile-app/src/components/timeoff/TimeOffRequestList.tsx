@@ -1,9 +1,3 @@
-/**
- * @fileoverview Time off request list component that displays an employee's time
- * off requests in a responsive format. Features request management, status
- * tracking, and filtering capabilities with both desktop and mobile views.
- */
-
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import {
   Box,
@@ -33,27 +27,10 @@ import { TimeOffRequestForm } from './TimeOffRequestForm';
 import { LoadingOverlay } from '../common/LoadingOverlay';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 
-/**
- * Interface for the TimeOffRequestList component's ref methods.
- */
 export interface TimeOffRequestListRef {
-  /** Method to refresh the list of time off requests */
   refreshList: () => void;
 }
 
-/**
- * TimeOffRequestList component that displays and manages time off requests.
- * Features:
- * - Responsive design with separate mobile and desktop views
- * - Request editing and deletion functionality
- * - Status tracking with color-coded chips
- * - Request type categorization
- * - Toggle for showing/hiding previous requests
- * - Loading and error state handling
- * - Refresh capability via ref
- * 
- * @returns The time off request list component
- */
 const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
   const [requests, setRequests] = useState<TimeOffRequest[]>([]);
   const [loading, setLoading] = useState(false);
@@ -64,9 +41,6 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
 
   const isMobile = useMediaQuery('(max-width:600px)');
 
-  /**
-   * Fetches time off requests from the API.
-   */
   const fetchRequests = async () => {
     setLoading(true);
     try {
@@ -89,11 +63,6 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
     fetchRequests();
   }, []);
 
-  /**
-   * Filters time off requests based on the showPreviousRequests flag.
-   * @param requests The list of time off requests to filter.
-   * @returns The filtered list of time off requests.
-   */
   const filterRequests = (requests: TimeOffRequest[]) => {
     const today = startOfToday();
     return requests.filter(request => {
@@ -102,28 +71,17 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
     });
   };
 
-  /**
-   * Handles the edit request action.
-   * @param request The time off request to edit.
-   */
   const handleEdit = (request: TimeOffRequest) => {
     setEditingRequest(request);
     setShowEditDialog(true);
   };
 
-  /**
-   * Handles the successful edit request action.
-   */
   const handleEditSuccess = async () => {
     setShowEditDialog(false);
     setEditingRequest(null);
     await fetchRequests(); // Refresh the list after successful edit
   };
 
-  /**
-   * Handles the delete request action.
-   * @param request The time off request to delete.
-   */
   const handleDelete = async (request: TimeOffRequest) => {
     if (window.confirm('Are you sure you want to delete this request?')) {
       setLoading(true);
@@ -142,20 +100,10 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
     }
   };
 
-  /**
-   * Checks if a request can be modified.
-   * @param request The time off request to check.
-   * @returns True if the request can be modified, false otherwise.
-   */
   const canModifyRequest = (request: TimeOffRequest) => {
     return request.status === 'pending';
   };
 
-  /**
-   * Formats a date string.
-   * @param dateString The date string to format.
-   * @returns The formatted date string.
-   */
   const formatDate = (dateString: string) => {
     try {
       const date = parseISO(dateString);
@@ -166,11 +114,6 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
     }
   };
 
-  /**
-   * Gets the color for a request type.
-   * @param type The request type.
-   * @returns The color for the request type.
-   */
   const getRequestTypeColor = (type: TimeOffRequest['request_type']) => {
     switch (type) {
       case 'vacation':
@@ -184,11 +127,6 @@ const TimeOffRequestList = forwardRef<TimeOffRequestListRef>((_, ref) => {
     }
   };
 
-  /**
-   * Gets the color for a request status.
-   * @param status The request status.
-   * @returns The color for the request status.
-   */
   const getStatusColor = (status: TimeOffRequest['status']) => {
     switch (status) {
       case 'approved':
