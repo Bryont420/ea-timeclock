@@ -115,23 +115,24 @@ async function registerValidSW(swUrl: string, config?: Config) {
     // Check for updates every minute
     setInterval(checkForUpdates, 60000);
 
-    registration.onupdatefound = () => {
+    if (config?.onSuccess) {
+      config.onSuccess(registration);
+    }
+
+    const onUpdateFound = () => {
       const installingWorker = registration.installing;
-      if (installingWorker == null) {
+      if (!installingWorker) {
         return;
       }
 
       installingWorker.onstatechange = () => {
-        if (installingWorker.state === 'installed') {
-          if (navigator.serviceWorker.controller) {
-            // New version available - force update
-            if (registration.waiting) {
-              registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-            }
-          }
+        if (installingWorker.state === 'installed' && config?.onUpdate) {
+          config.onUpdate(registration);
         }
       };
     };
+
+    registration.onupdatefound = onUpdateFound;
 
     // Listen for the controllerchange event
     navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -155,11 +156,59 @@ async function registerValidSW(swUrl: string, config?: Config) {
   }
 }
 
+// Handle service worker messages with origin check
+const handleServiceWorkerMessage = (event: MessageEvent) => {
+  // Verify message origin
+  if (!event.origin || event.origin !== window.location.origin) {
+    console.warn(`Rejected message from untrusted origin: ${event.origin}`);
+    return;
+  }
+  
+  if (event.data?.type === 'RELOAD_PAGE') {
+    window.location.reload();
+  }
+};
+
 export function register(config?: Config) {
   if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
+    // Add message event listener
+    navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+
     window.addEventListener('load', () => {
       const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
-      registerValidSW(swUrl, config);
+      registerValidSW(swUrl, {
+        onUpdate: (registration: ServiceWorkerRegistration) => {
+          // When a new version is available, notify the user
+          const updateNotification = document.createElement('div');
+          updateNotification.className = 'update-notification';
+          updateNotification.style.cssText = `
+            position: fixed;
+            bottom: 16px;
+            right: 16px;
+            background: #2196F3;
+            color: white;
+            padding: 16px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 10000;
+          `;
+          updateNotification.innerHTML = `
+            <p style="margin: 0 0 8px 0">A new version is available!</p>
+            <button onclick="window.location.reload()" 
+                    style="background: white; color: #2196F3; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer">
+              Update Now
+            </button>
+          `;
+          document.body.appendChild(updateNotification);
+
+          // Activate the new service worker when user clicks update
+          const waitingServiceWorker = registration.waiting;
+          if (waitingServiceWorker) {
+            waitingServiceWorker.postMessage({ type: 'SKIP_WAITING' });
+          }
+        },
+        ...config
+      });
 
       window.addEventListener('beforeinstallprompt', (e: Event) => {
         e.preventDefault();

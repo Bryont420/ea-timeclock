@@ -205,25 +205,25 @@ registerRoute(
 // Get the expected origin from the environment
 const ALLOWED_ORIGIN = self.location.origin;
 
-// Handle messages from clients
-self.addEventListener('message', (event) => {
-  // Check if the message is from our application origin
-  if (event.origin !== ALLOWED_ORIGIN) {
+// Handle messages from clients with origin check
+const handleClientMessage = (event: ExtendableMessageEvent) => {
+  // Verify message origin
+  if (!event.origin || event.origin !== ALLOWED_ORIGIN) {
     console.warn(`Rejected message from untrusted origin: ${event.origin}`);
     return;
   }
 
-  if (event.data && event.data.type === 'GET_VERSION') {
+  if (event.data?.type === 'GET_VERSION') {
     event.ports[0].postMessage({
       version: BUILD_VERSION,
       timestamp: BUILD_TIMESTAMP,
       cacheVersion: CACHE_VERSION
     });
   }
-  if (event.data && event.data.type === 'SKIP_WAITING') {
+  if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
-  if (event.data && event.data.type === 'LOGOUT') {
+  if (event.data?.type === 'LOGOUT') {
     // Clear user-specific caches
     caches.delete('user-preferences')
       .then(() => {
@@ -233,7 +233,9 @@ self.addEventListener('message', (event) => {
         console.error('Error clearing user preferences cache:', error);
       });
   }
-});
+};
+
+self.addEventListener('message', handleClientMessage);
 
 // Handle offline fallback
 self.addEventListener('fetch', (event) => {
