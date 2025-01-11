@@ -10,7 +10,7 @@
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.15.2",
     "@mui/material": "^5.15.2",
-    "@mui/x-date-pickers": "^7.22.3",
+    "@mui/x-date-pickers": "^7.23.3",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-toast": "^1.2.2",
